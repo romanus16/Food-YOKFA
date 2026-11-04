@@ -87,13 +87,25 @@ Mise en service :
 3. Sur iPhone, il faut en plus une clé APNs dans la console Firebase
    (Paramètres du projet → Cloud Messaging).
 
+## Carte du lieu de livraison
+
+Le client peut placer un repère sur une carte (et ajouter un point de repère
+en texte) ; le livreur voit ce lieu dans le détail de la commande, avec un
+bouton « Itinéraire » qui ouvre Google Maps.
+
+La carte utilise **OpenStreetMap** (paquet `flutter_map`) : aucune clé ni
+abonnement. Les serveurs publics d'OpenStreetMap suffisent pour un petit
+volume ; si l'appli grandit beaucoup, passer à un fournisseur de tuiles
+(MapTiler, Stadia…) en changeant `urlTemplate` dans
+`lib/features/lieu/carte.dart`.
+
 ## Données (Firestore)
 
 | Collection | Contenu |
 | --- | --- |
 | `categories` | nom, icône (emoji), ordre, visible |
 | `produits` | nom, categorieId, prix (FCFA entier), photoUrl, disponible, visible, ordre |
-| `commandes` | clientId, lignes (produit, nom, quantité, prix unitaire), total, heureSouhaitee, filiere, batiment (`nouveau` / `ancien`), moyenPaiement (`tmoney` / `flooz` / `especes`), referencePaiement, statut, codeQr, creeLe, payeeLe, livreeLe |
+| `commandes` | clientId, lignes (produit, nom, quantité, prix unitaire), total, heureSouhaitee, filiere, batiment (`nouveau` / `ancien`), moyenPaiement (`tmoney` / `flooz` / `especes`), lieu (latitude, longitude, repere ; facultatif), referencePaiement, statut, codeQr, creeLe, payeeLe, livreeLe |
 | `config/paiement` | numeroTmoney, numeroFlooz (comptes marchands) |
 | `gerants/{uid}` | un document par gérant (son contenu n'importe pas) |
 

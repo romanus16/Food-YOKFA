@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/format.dart';
 import '../../core/identite.dart';
 import '../../data/models/commande.dart';
 import '../../data/repositories/commande_repository.dart';
+import '../lieu/carte.dart';
+import '../lieu/choix_lieu_screen.dart';
 import '../paiement/paiement_screen.dart';
 import '../panier/panier.dart';
 
 /// Formulaire ouvert par « Commander » : heure souhaitée, filière,
-/// bâtiment et moyen de paiement, avec le récapitulatif du panier.
+/// bâtiment, lieu précis (facultatif) et moyen de paiement, avec le
+/// récapitulatif du panier.
 class FormulaireCommandeScreen extends StatefulWidget {
-  const FormulaireCommandeScreen({super.key, this.maintenant});
+  const FormulaireCommandeScreen({super.key, this.maintenant, this.localiser});
 
   /// Heure de référence (pour les tests). Par défaut l'heure actuelle.
   final DateTime Function()? maintenant;
+
+  /// Position du téléphone pour la carte (pour les tests). Par défaut le GPS.
+  final Localiser? localiser;
 
   @override
   State<FormulaireCommandeScreen> createState() =>
@@ -25,6 +32,8 @@ class FormulaireCommandeScreen extends StatefulWidget {
 class _FormulaireCommandeScreenState extends State<FormulaireCommandeScreen> {
   final _form = GlobalKey<FormState>();
   final _filiere = TextEditingController();
+  final _repere = TextEditingController();
+  LatLng? _point;
   DateTime? _heure;
   Batiment? _batiment;
   MoyenPaiement? _paiement;
@@ -36,7 +45,18 @@ class _FormulaireCommandeScreenState extends State<FormulaireCommandeScreen> {
   @override
   void dispose() {
     _filiere.dispose();
+    _repere.dispose();
     super.dispose();
+  }
+
+  Future<void> _choisirSurCarte() async {
+    final p = await Navigator.of(context).push<LatLng>(
+      MaterialPageRoute(
+        builder: (_) =>
+            ChoixLieuScreen(initial: _point, localiser: widget.localiser),
+      ),
+    );
+    if (p != null && mounted) setState(() => _point = p);
   }
 
   Future<void> _choisirHeure() async {
@@ -90,6 +110,11 @@ class _FormulaireCommandeScreenState extends State<FormulaireCommandeScreen> {
         filiere: _filiere.text,
         batiment: _batiment!,
         moyenPaiement: _paiement!,
+        lieu: LieuLivraison(
+          latitude: _point?.latitude,
+          longitude: _point?.longitude,
+          repere: _repere.text,
+        ),
       );
       panier.vider();
       nav.pushAndRemoveUntil(
@@ -213,6 +238,57 @@ class _FormulaireCommandeScreenState extends State<FormulaireCommandeScreen> {
               ),
               if (_tente && _batiment == null)
                 Text('Choisissez un bâtiment.', style: erreurStyle),
+              const SizedBox(height: 16),
+              Text(
+                'Lieu précis (facultatif)',
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              if (_point == null)
+                OutlinedButton.icon(
+                  key: const ValueKey('carte'),
+                  onPressed: _choisirSurCarte,
+                  icon: const Icon(Icons.map_outlined),
+                  label: const Text('Choisir sur la carte'),
+                )
+              else
+                Card(
+                  key: const ValueKey('carte'),
+                  child: ListTile(
+                    leading: const Icon(Icons.location_on),
+                    title: const Text('Lieu choisi sur la carte'),
+                    subtitle: Text(
+                      '${_point!.latitude.toStringAsFixed(5)}, '
+                      '${_point!.longitude.toStringAsFixed(5)}',
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: 'Modifier le lieu',
+                          onPressed: _choisirSurCarte,
+                          icon: const Icon(Icons.edit_location_alt),
+                        ),
+                        IconButton(
+                          tooltip: 'Retirer le lieu',
+                          onPressed: () => setState(() => _point = null),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 8),
+              TextField(
+                key: const ValueKey('repere'),
+                controller: _repere,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  labelText: 'Point de repère',
+                  hintText: 'Ex. devant l\'amphi B, sous le manguier',
+                  border: OutlineInputBorder(),
+                ),
+              ),
               const SizedBox(height: 16),
               Text('Régler la facture par', style: theme.textTheme.titleMedium),
               RadioGroup<MoyenPaiement>(

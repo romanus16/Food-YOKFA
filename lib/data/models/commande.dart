@@ -87,6 +87,46 @@ class LigneCommande {
   };
 }
 
+/// Lieu précis de livraison choisi par le client (facultatif) :
+/// un point sur la carte et/ou un point de repère en texte.
+class LieuLivraison {
+  const LieuLivraison({this.latitude, this.longitude, this.repere = ''});
+
+  final double? latitude;
+  final double? longitude;
+
+  /// Exemple : « devant l'amphi B, banc sous le manguier ».
+  final String repere;
+
+  bool get aPosition => latitude != null && longitude != null;
+
+  bool get estVide => !aPosition && repere.trim().isEmpty;
+
+  /// Lien Google Maps qui ouvre l'itinéraire jusqu'au point.
+  Uri? get itineraire => aPosition
+      ? Uri.https('www.google.com', '/maps/dir/', {
+          'api': '1',
+          'destination': '$latitude,$longitude',
+        })
+      : null;
+
+  static LieuLivraison? fromMap(Object? data) {
+    if (data is! Map) return null;
+    final lieu = LieuLivraison(
+      latitude: (data['latitude'] as num?)?.toDouble(),
+      longitude: (data['longitude'] as num?)?.toDouble(),
+      repere: data['repere'] as String? ?? '',
+    );
+    return lieu.estVide ? null : lieu;
+  }
+
+  Map<String, dynamic> toMap() => {
+    'latitude': latitude,
+    'longitude': longitude,
+    'repere': repere.trim(),
+  };
+}
+
 class Commande {
   const Commande({
     required this.id,
@@ -100,6 +140,7 @@ class Commande {
     required this.creeLe,
     this.statut = StatutCommande.enAttentePaiement,
     this.referencePaiement,
+    this.lieu,
     this.payeeLe,
     this.livreeLe,
   });
@@ -111,6 +152,9 @@ class Commande {
   final String filiere;
   final Batiment batiment;
   final MoyenPaiement moyenPaiement;
+
+  /// Lieu précis de livraison, en plus du bâtiment (facultatif).
+  final LieuLivraison? lieu;
 
   /// Identifiant aléatoire encodé dans le QR code remis au client.
   final String codeQr;
@@ -153,6 +197,7 @@ class Commande {
       codeQr: data['codeQr'] as String? ?? '',
       statut: StatutCommande.fromCode(data['statut'] as String?),
       referencePaiement: data['referencePaiement'] as String?,
+      lieu: LieuLivraison.fromMap(data['lieu']),
       creeLe: _date(data['creeLe']) ?? DateTime.now(),
       payeeLe: _date(data['payeeLe']),
       livreeLe: _date(data['livreeLe']),
@@ -170,6 +215,7 @@ class Commande {
     'codeQr': codeQr,
     'statut': statut.code,
     'referencePaiement': referencePaiement,
+    'lieu': lieu?.toMap(),
     'creeLe': Timestamp.fromDate(creeLe),
     'payeeLe': payeeLe == null ? null : Timestamp.fromDate(payeeLe!),
     'livreeLe': livreeLe == null ? null : Timestamp.fromDate(livreeLe!),
