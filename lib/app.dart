@@ -57,6 +57,7 @@ class FoodYokfaApp extends StatelessWidget {
     final base = db ?? FirebaseFirestore.instance;
     return MultiProvider(
       providers: [
+        Provider<FirebaseFirestore>.value(value: base),
         Provider(create: (_) => MenuRepository(base)),
         Provider(create: (_) => CommandeRepository(base)),
         Provider(create: (_) => ConfigRepository(base)),
