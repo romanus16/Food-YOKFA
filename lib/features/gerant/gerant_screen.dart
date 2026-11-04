@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/auth_gerant.dart';
 import 'commandes_gerant_screen.dart';
 import 'connexion_gerant_screen.dart';
+import 'menu_gerant_screen.dart';
 import 'scan_livraison_screen.dart';
 
 /// Entrée de l'espace gérant : connexion, vérification du rôle,
@@ -67,7 +68,8 @@ class _EspaceGerantState extends State<EspaceGerant> {
       ),
       body: switch (_onglet) {
         0 => const CommandesGerantScreen(),
-        _ => ScanLivraisonScreen(avecCamera: widget.avecCamera),
+        1 => ScanLivraisonScreen(avecCamera: widget.avecCamera),
+        _ => const MenuGerantScreen(),
       },
       bottomNavigationBar: NavigationBar(
         selectedIndex: _onglet,
@@ -80,6 +82,10 @@ class _EspaceGerantState extends State<EspaceGerant> {
           NavigationDestination(
             icon: Icon(Icons.qr_code_scanner),
             label: 'Scanner',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.restaurant_menu),
+            label: 'Menu',
           ),
         ],
       ),
