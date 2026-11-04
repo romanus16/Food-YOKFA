@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:food_yokfa/core/auth_gerant.dart';
 import 'package:food_yokfa/core/identite.dart';
+import 'package:food_yokfa/core/notifications_gerant.dart';
 
 class IdentiteFactice implements Identite {
   IdentiteFactice([this.id = 'client-test']);
@@ -54,4 +55,22 @@ class AuthGerantFactice implements AuthGerant {
 
   @override
   Stream<bool> estGerant(String uid) => Stream.value(gerants.contains(uid));
+}
+
+class NotificationsFactices implements NotificationsGerant {
+  final actives = <String>{};
+  final ouverturesCtrl = StreamController<String>.broadcast();
+  final premierPlanCtrl = StreamController<NotificationRecue>.broadcast();
+
+  @override
+  Future<void> activer(String uid) async => actives.add(uid);
+
+  @override
+  Future<void> desactiver(String uid) async => actives.remove(uid);
+
+  @override
+  Stream<String> ouvertures() => ouverturesCtrl.stream;
+
+  @override
+  Stream<NotificationRecue> premierPlan() => premierPlanCtrl.stream;
 }
