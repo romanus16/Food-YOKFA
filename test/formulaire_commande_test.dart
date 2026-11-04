@@ -1,17 +1,13 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:food_yokfa/core/identite.dart';
 import 'package:food_yokfa/data/models/commande.dart';
 import 'package:food_yokfa/data/models/produit.dart';
-import 'package:food_yokfa/data/repositories/commande_repository.dart';
 import 'package:food_yokfa/features/commande/formulaire_commande_screen.dart';
 import 'package:food_yokfa/features/panier/panier.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:provider/provider.dart';
 
-import 'support/fakes.dart';
+import 'support/harness.dart';
 
 void main() {
   setUpAll(() => initializeDateFormatting('fr'));
@@ -29,24 +25,12 @@ void main() {
         const Produit(id: 's', nom: 'Spaghetti', categorieId: 'n', prix: 1000),
       );
     await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          Provider(create: (_) => CommandeRepository(db)),
-          Provider<Identite>(create: (_) => IdentiteFactice()),
-          ChangeNotifierProvider.value(value: panier),
-        ],
-        child: MaterialApp(
-          locale: const Locale('fr'),
-          supportedLocales: const [Locale('fr')],
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          home: FormulaireCommandeScreen(
-            maintenant: () => DateTime(2026, 11, 5, 10, 0),
-          ),
+      monter(
+        FormulaireCommandeScreen(
+          maintenant: () => DateTime(2026, 11, 5, 10, 0),
         ),
+        db,
+        panier: panier,
       ),
     );
     return (db, panier);
