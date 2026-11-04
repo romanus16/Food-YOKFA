@@ -37,7 +37,11 @@ void main() {
   ) async {
     final auth = AuthGerantFactice(comptes: {'romaric@yokfa.tg': 'secret1'});
     await tester.pumpWidget(
-      monter(const GerantScreen(), FakeFirebaseFirestore(), auth: auth),
+      monter(
+        const GerantScreen(avecCamera: false),
+        FakeFirebaseFirestore(),
+        auth: auth,
+      ),
     );
     await tester.pumpAndSettle();
     expect(find.text('Se connecter'), findsOneWidget);
@@ -62,7 +66,9 @@ void main() {
     final id = await commande(db);
     await CommandeRepository(db).enregistrerReferencePaiement(id, 'TX42');
     final auth = AuthGerantFactice(connecte: romaric, gerants: {'g1'});
-    await tester.pumpWidget(monter(const GerantScreen(), db, auth: auth));
+    await tester.pumpWidget(
+      monter(const GerantScreen(avecCamera: false), db, auth: auth),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Espace gérant'), findsOneWidget);
@@ -86,7 +92,9 @@ void main() {
     await commande(db, heure: 11);
     await CommandeRepository(db).validerPaiement(soir);
     final auth = AuthGerantFactice(connecte: romaric, gerants: {'g1'});
-    await tester.pumpWidget(monter(const GerantScreen(), db, auth: auth));
+    await tester.pumpWidget(
+      monter(const GerantScreen(avecCamera: false), db, auth: auth),
+    );
     await tester.pumpAndSettle();
 
     // « À valider » par défaut : seulement celle de 11 h.
@@ -109,7 +117,9 @@ void main() {
     final db = FakeFirebaseFirestore();
     final id = await commande(db);
     final auth = AuthGerantFactice(connecte: romaric, gerants: {'g1'});
-    await tester.pumpWidget(monter(const GerantScreen(), db, auth: auth));
+    await tester.pumpWidget(
+      monter(const GerantScreen(avecCamera: false), db, auth: auth),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('3 × Spaghetti'));
     await tester.pumpAndSettle();
