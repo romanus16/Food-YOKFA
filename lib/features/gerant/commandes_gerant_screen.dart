@@ -108,6 +108,12 @@ class LigneCommandeGerant extends StatelessWidget {
           c.aEncaisser ? 'Espèces à encaisser' : c.statut.libelle,
         ].join(' · '),
       ),
+      leading: c.lieu?.aPosition == true
+          ? const Tooltip(
+              message: 'Lieu précis sur la carte',
+              child: Icon(Icons.location_on),
+            )
+          : null,
       trailing: Text(formatFcfa(c.total)),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(

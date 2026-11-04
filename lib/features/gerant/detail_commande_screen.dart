@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/format.dart';
 import '../../data/models/commande.dart';
 import '../../data/repositories/commande_repository.dart';
+import '../lieu/carte.dart';
 
 class DetailCommandeScreen extends StatelessWidget {
   const DetailCommandeScreen({super.key, required this.commandeId});
@@ -64,6 +65,10 @@ class DetailCommandeScreen extends StatelessWidget {
               _Info('Pour le', f.format(c.heureSouhaitee)),
               _Info('Filière', c.filiere),
               _Info('Bâtiment', c.batiment.libelle),
+              if (c.lieu != null) ...[
+                CarteLieu(lieu: c.lieu!),
+                const SizedBox(height: 8),
+              ],
               _Info(
                 'Paiement',
                 '${c.moyenPaiement.libelle} (${c.moyenPaiement.operateur})',
