@@ -8,8 +8,11 @@ class ConfigPaiement {
   final String numeroTmoney;
   final String numeroFlooz;
 
-  String numeroPour(MoyenPaiement moyen) =>
-      moyen == MoyenPaiement.tmoney ? numeroTmoney : numeroFlooz;
+  String numeroPour(MoyenPaiement moyen) => switch (moyen) {
+    MoyenPaiement.tmoney => numeroTmoney,
+    MoyenPaiement.flooz => numeroFlooz,
+    MoyenPaiement.especes => '',
+  };
 
   factory ConfigPaiement.fromMap(Map<String, dynamic>? data) => ConfigPaiement(
     numeroTmoney: data?['numeroTmoney'] as String? ?? '',

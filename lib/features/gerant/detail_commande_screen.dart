@@ -68,12 +68,25 @@ class DetailCommandeScreen extends StatelessWidget {
                 'Paiement',
                 '${c.moyenPaiement.libelle} (${c.moyenPaiement.operateur})',
               ),
-              _Info('Référence', c.referencePaiement ?? 'Pas encore saisie'),
+              if (c.moyenPaiement.estMobileMoney)
+                _Info('Référence', c.referencePaiement ?? 'Pas encore saisie'),
               _Info('Commandée le', f.format(c.creeLe)),
               if (c.payeeLe != null) _Info('Payée le', f.format(c.payeeLe!)),
               if (c.livreeLe != null) _Info('Livrée le', f.format(c.livreeLe!)),
               const SizedBox(height: 24),
-              if (c.statut == StatutCommande.enAttentePaiement) ...[
+              if (c.aEncaisser)
+                Card(
+                  color: theme.colorScheme.primaryContainer,
+                  child: ListTile(
+                    leading: const Icon(Icons.payments_outlined),
+                    title: Text('Espèces : ${formatFcfa(c.total)} à encaisser'),
+                    subtitle: const Text(
+                      'Le livreur encaisse au moment du scan du QR code.',
+                    ),
+                  ),
+                ),
+              if (c.statut == StatutCommande.enAttentePaiement &&
+                  c.moyenPaiement.estMobileMoney) ...[
                 Text(
                   'Vérifiez sur votre compte ${c.moyenPaiement.libelle} que '
                   '${formatFcfa(c.total)} ont bien été reçus avant de valider.',
@@ -117,6 +130,8 @@ class DetailCommandeScreen extends StatelessWidget {
         content: Text(
           c.statut == StatutCommande.payee
               ? 'Le client a payé : pensez à le rembourser.'
+              : c.aEncaisser
+              ? 'La commande ne sera pas livrée.'
               : 'Le client ne pourra plus payer cette commande.',
         ),
         actions: [
