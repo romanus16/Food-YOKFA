@@ -1,15 +1,19 @@
 rules_version = '2';
 
-// Règles de départ. Elles seront affinées avec le modèle de données (issue #2).
-// Un gérant est un utilisateur dont le jeton porte la revendication `gerant: true`
-// (à poser depuis la console Firebase ou un script d'administration).
+// Règles de sécurité Firestore de Food YOKFA.
+//
+// Rôles :
+// - client : tout utilisateur connecté (connexion anonyme dans l'appli) ;
+// - gérant : utilisateur dont l'uid a un document dans `gerants/{uid}`
+//   (à créer à la main depuis la console Firebase, voir README).
 service cloud.firestore {
   match /databases/{database}/documents {
     function connecte() {
       return request.auth != null;
     }
     function gerant() {
-      return connecte() && request.auth.token.gerant == true;
+      return connecte()
+        && exists(/databases/$(database)/documents/gerants/$(request.auth.uid));
     }
 
     // Menu : lisible par tous, modifiable par les gérants.
@@ -22,15 +26,43 @@ service cloud.firestore {
       allow write: if gerant();
     }
 
-    // Commandes : le client crée et lit les siennes, le gérant lit et met à jour.
+    // Numéros des comptes marchands.
+    match /config/{id} {
+      allow read: if true;
+      allow write: if gerant();
+    }
+
+    // Liste des gérants : chacun peut vérifier son propre rôle.
+    match /gerants/{uid} {
+      allow read: if connecte() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
     match /commandes/{id} {
-      allow create: if connecte() && request.resource.data.clientId == request.auth.uid;
-      allow read: if gerant() || (connecte() && resource.data.clientId == request.auth.uid);
-      allow update: if gerant();
+      // Le client crée sa commande, forcément « en attente de paiement ».
+      allow create: if connecte()
+        && request.resource.data.clientId == request.auth.uid
+        && request.resource.data.statut == 'en_attente_paiement'
+        && request.resource.data.payeeLe == null
+        && request.resource.data.livreeLe == null
+        && request.resource.data.lignes.size() > 0;
+
+      allow read: if gerant()
+        || (connecte() && resource.data.clientId == request.auth.uid);
+
+      // Le client peut seulement saisir sa référence de paiement,
+      // tant que la commande attend le paiement. Le gérant fait le reste.
+      allow update: if gerant()
+        || (connecte()
+          && resource.data.clientId == request.auth.uid
+          && resource.data.statut == 'en_attente_paiement'
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['referencePaiement']));
+
       allow delete: if false;
     }
 
-    // Tout le reste est fermé par défaut.
+    // Tout le reste est fermé.
     match /{document=**} {
       allow read, write: if false;
     }
