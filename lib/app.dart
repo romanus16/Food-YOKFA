@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
+import 'core/auth_gerant.dart';
 import 'core/firebase_bootstrap.dart';
 import 'core/identite.dart';
 import 'core/theme.dart';
@@ -19,6 +20,7 @@ class FoodYokfaApp extends StatelessWidget {
     required this.firebase,
     this.db,
     this.identite,
+    this.authGerant,
   });
 
   final FirebaseStatus firebase;
@@ -29,6 +31,9 @@ class FoodYokfaApp extends StatelessWidget {
 
   /// Identité du client. Par défaut la connexion anonyme Firebase.
   final Identite? identite;
+
+  /// Connexion des gérants. Par défaut Firebase Auth.
+  final AuthGerant? authGerant;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +62,9 @@ class FoodYokfaApp extends StatelessWidget {
         Provider(create: (_) => ConfigRepository(base)),
         ChangeNotifierProvider(create: (_) => Panier()),
         Provider<Identite>(create: (_) => identite ?? IdentiteFirebase()),
+        Provider<AuthGerant>(
+          create: (_) => authGerant ?? AuthGerantFirebase(base),
+        ),
       ],
       child: app,
     );
