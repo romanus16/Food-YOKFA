@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../data/models/categorie.dart';
 import '../../data/repositories/menu_repository.dart';
 import '../commande/mes_commandes_screen.dart';
+import '../gerant/gerant_screen.dart';
 import '../menu/produits_screen.dart';
 import '../panier/barre_commander.dart';
 
@@ -26,6 +27,17 @@ class HomeScreen extends StatelessWidget {
                 builder: (_) => const MesCommandesScreen(),
               ),
             ),
+          ),
+          PopupMenuButton<void>(
+            tooltip: 'Plus',
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                child: const Text('Espace gérant'),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const GerantScreen()),
+                ),
+              ),
+            ],
           ),
         ],
       ),
