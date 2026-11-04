@@ -17,13 +17,20 @@ class CommandesGerantScreen extends StatefulWidget {
 }
 
 class _CommandesGerantScreenState extends State<CommandesGerantScreen> {
-  StatutCommande? _filtre = StatutCommande.enAttentePaiement;
+  int _filtre = 0;
 
-  static const _filtres = <(String, StatutCommande?)>[
-    ('À valider', StatutCommande.enAttentePaiement),
-    ('À livrer', StatutCommande.payee),
-    ('Livrées', StatutCommande.livree),
-    ('Toutes', null),
+  /// Les commandes en espèces n'ont pas de paiement à valider : elles vont
+  /// directement dans « À livrer ».
+  static final _filtres = <(String, bool Function(Commande))>[
+    (
+      'À valider',
+      (c) =>
+          c.statut == StatutCommande.enAttentePaiement &&
+          c.moyenPaiement.estMobileMoney,
+    ),
+    ('À livrer', (c) => c.aLivrer),
+    ('Livrées', (c) => c.statut == StatutCommande.livree),
+    ('Toutes', (_) => true),
   ];
 
   @override
@@ -36,13 +43,13 @@ class _CommandesGerantScreenState extends State<CommandesGerantScreen> {
           padding: const EdgeInsets.all(8),
           child: Row(
             children: [
-              for (final (libelle, statut) in _filtres)
+              for (final (i, (libelle, _)) in _filtres.indexed)
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(
                     label: Text(libelle),
-                    selected: _filtre == statut,
-                    onSelected: (_) => setState(() => _filtre = statut),
+                    selected: _filtre == i,
+                    onSelected: (_) => setState(() => _filtre = i),
                   ),
                 ),
             ],
@@ -51,7 +58,7 @@ class _CommandesGerantScreenState extends State<CommandesGerantScreen> {
         Expanded(
           child: StreamBuilder<List<Commande>>(
             key: ValueKey(_filtre),
-            stream: repo.toutes(statut: _filtre),
+            stream: repo.toutes(),
             builder: (context, snap) {
               if (snap.hasError) {
                 return const Center(
@@ -61,7 +68,8 @@ class _CommandesGerantScreenState extends State<CommandesGerantScreen> {
               if (!snap.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
-              final liste = snap.data!;
+              final garder = _filtres[_filtre].$2;
+              final liste = snap.data!.where(garder).toList();
               if (liste.isEmpty) {
                 return const Center(child: Text('Aucune commande.'));
               }
@@ -93,7 +101,13 @@ class LigneCommandeGerant extends StatelessWidget {
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),
-      subtitle: Text('$heure · ${c.batiment.libelle} · ${c.statut.libelle}'),
+      subtitle: Text(
+        [
+          heure,
+          c.batiment.libelle,
+          c.aEncaisser ? 'Espèces à encaisser' : c.statut.libelle,
+        ].join(' · '),
+      ),
       trailing: Text(formatFcfa(c.total)),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(

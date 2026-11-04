@@ -226,6 +226,11 @@ class _FormulaireCommandeScreenState extends State<FormulaireCommandeScreen> {
                         value: m,
                         title: Text(m.libelle),
                         subtitle: Text(m.operateur),
+                        secondary: Icon(
+                          m.estMobileMoney
+                              ? Icons.phone_android
+                              : Icons.payments_outlined,
+                        ),
                         contentPadding: EdgeInsets.zero,
                       ),
                   ],

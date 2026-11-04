@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../core/format.dart';
 import '../models/commande.dart';
 
 /// Erreur métier affichable à l'utilisateur.
@@ -100,10 +101,16 @@ class CommandeRepository {
     return _commandes.doc(id).update({'referencePaiement': ref});
   }
 
-  /// Le gérant confirme avoir reçu le paiement.
+  /// Le gérant confirme avoir reçu le paiement mobile money.
+  /// Une commande en espèces est encaissée au scan, pas ici.
   Future<void> validerPaiement(String id) => _db.runTransaction((tx) async {
     final doc = await tx.get(_commandes.doc(id));
     final c = Commande.fromMap(doc.id, doc.data() ?? {});
+    if (c.moyenPaiement == MoyenPaiement.especes) {
+      throw const CommandeException(
+        'Paiement en espèces : il est encaissé au scan du QR code.',
+      );
+    }
     if (c.statut != StatutCommande.enAttentePaiement) {
       throw CommandeException(
         'Cette commande est déjà « ${c.statut.libelle} ».',
@@ -126,10 +133,8 @@ class CommandeRepository {
     tx.update(doc.reference, {'statut': StatutCommande.annulee.code});
   });
 
-  /// Confirme la livraison à partir du code lu dans le QR.
-  /// Renvoie la commande livrée, ou lève une [CommandeException]
-  /// avec un message clair si le code est refusé.
-  Future<Commande> confirmerLivraison(String codeQr) async {
+  /// Retrouve la commande correspondant au code lu dans le QR.
+  Future<Commande> chercherParCode(String codeQr) async {
     final code = codeQr.trim();
     if (code.isEmpty) throw const CommandeException('QR code illisible.');
     final res = await _commandes
@@ -141,31 +146,53 @@ class CommandeRepository {
         'QR code inconnu : aucune commande trouvée.',
       );
     }
-    final ref = res.docs.first.reference;
+    final d = res.docs.first;
+    return Commande.fromMap(d.id, d.data());
+  }
+
+  /// Confirme la livraison à partir du code lu dans le QR.
+  /// Renvoie la commande livrée, ou lève une [CommandeException]
+  /// avec un message clair si le code est refusé.
+  ///
+  /// Pour une commande en espèces, [especesEncaissees] doit être vrai :
+  /// le livreur confirme avoir reçu l'argent, et la commande passe
+  /// directement de « En attente de paiement » à « Livrée ».
+  Future<Commande> confirmerLivraison(
+    String codeQr, {
+    bool especesEncaissees = false,
+  }) async {
+    final trouvee = await chercherParCode(codeQr);
+    final ref = _commandes.doc(trouvee.id);
     return _db.runTransaction((tx) async {
       final doc = await tx.get(ref);
       final c = Commande.fromMap(doc.id, doc.data() ?? {});
+      final now = Timestamp.now();
+      final maj = <String, dynamic>{
+        'statut': StatutCommande.livree.code,
+        'livreeLe': now,
+      };
       switch (c.statut) {
         case StatutCommande.livree:
           throw const CommandeException('Cette commande a déjà été livrée.');
-        case StatutCommande.enAttentePaiement:
-          throw const CommandeException(
-            'Cette commande n\'est pas encore payée.',
-          );
         case StatutCommande.annulee:
           throw const CommandeException('Cette commande a été annulée.');
+        case StatutCommande.enAttentePaiement:
+          if (c.moyenPaiement != MoyenPaiement.especes) {
+            throw const CommandeException(
+              'Cette commande n\'est pas encore payée.',
+            );
+          }
+          if (!especesEncaissees) {
+            throw CommandeException(
+              'Encaissez ${formatFcfa(c.total)} en espèces avant de confirmer.',
+            );
+          }
+          maj['payeeLe'] = now;
         case StatutCommande.payee:
-          final now = DateTime.now();
-          tx.update(ref, {
-            'statut': StatutCommande.livree.code,
-            'livreeLe': Timestamp.fromDate(now),
-          });
-          return Commande.fromMap(doc.id, {
-            ...?doc.data(),
-            'statut': StatutCommande.livree.code,
-            'livreeLe': Timestamp.fromDate(now),
-          });
+          break;
       }
+      tx.update(ref, maj);
+      return Commande.fromMap(doc.id, {...?doc.data(), ...maj});
     });
   }
 }

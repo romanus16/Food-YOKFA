@@ -47,7 +47,21 @@ class _ScanLivraisonScreenState extends State<ScanLivraisonScreen> {
     Commande? livree;
     String? erreur;
     try {
-      livree = await repo.confirmerLivraison(code);
+      final c = await repo.chercherParCode(code);
+      var encaissees = false;
+      if (c.aEncaisser) {
+        if (!mounted) return;
+        encaissees = await _confirmerEncaissement(c);
+        if (!encaissees) {
+          if (mounted) setState(() => _occupe = false);
+          await _camera?.start();
+          return;
+        }
+      }
+      livree = await repo.confirmerLivraison(
+        code,
+        especesEncaissees: encaissees,
+      );
     } catch (e) {
       erreur = e.toString();
     }
@@ -80,6 +94,33 @@ class _ScanLivraisonScreenState extends State<ScanLivraisonScreen> {
     if (!mounted) return;
     setState(() => _occupe = false);
     await _camera?.start();
+  }
+
+  /// Commande en espèces : le livreur confirme avoir reçu le montant.
+  Future<bool> _confirmerEncaissement(Commande c) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        icon: const Icon(Icons.payments_outlined, size: 48),
+        title: Text('Encaisser ${formatFcfa(c.total)}'),
+        content: Text(
+          'Paiement en espèces.\n\n'
+          '${c.lignes.map((l) => '${l.quantite} × ${l.nom}').join('\n')}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Pas encore'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('J\'ai reçu l\'argent'),
+          ),
+        ],
+      ),
+    );
+    return ok ?? false;
   }
 
   Future<void> _saisieManuelle() async {

@@ -29,6 +29,19 @@ test("texte d'une nouvelle commande", () => {
   assert.equal(m.corps, "3 × Spaghetti, ancien bâtiment, pour 12 h 30");
 });
 
+test("nouvelle commande en espèces", () => {
+  const m = nouvelleCommande({
+    lignes: [{ nom: "Spaghetti", quantite: 2 }],
+    batiment: "nouveau",
+    moyenPaiement: "especes",
+    total: 2000,
+  });
+  assert.equal(
+    m.corps,
+    `2 × Spaghetti, nouveau bâtiment, espèces ${fcfa(2000)} à encaisser`,
+  );
+});
+
 test("texte d'un paiement à vérifier", () => {
   const m = paiementAVerifier({
     lignes: [{ nom: "Eau", quantite: 2 }],
