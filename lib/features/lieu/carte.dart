@@ -116,17 +116,17 @@ class CarteLieu extends StatelessWidget {
             subtitle: lieu.aPosition && lieu.repere.isNotEmpty
                 ? const Text('Point choisi sur la carte')
                 : null,
-            trailing: itineraire == null
-                ? null
-                : FilledButton.tonalIcon(
-                    onPressed: () => launchUrl(
-                      itineraire,
-                      mode: LaunchMode.externalApplication,
-                    ),
-                    icon: const Icon(Icons.directions),
-                    label: const Text('Itinéraire'),
-                  ),
           ),
+          if (itineraire != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: FilledButton.tonalIcon(
+                onPressed: () =>
+                    launchUrl(itineraire, mode: LaunchMode.externalApplication),
+                icon: const Icon(Icons.directions),
+                label: const Text('Itinéraire'),
+              ),
+            ),
         ],
       ),
     );

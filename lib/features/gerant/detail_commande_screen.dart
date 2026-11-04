@@ -71,7 +71,9 @@ class DetailCommandeScreen extends StatelessWidget {
               ],
               _Info(
                 'Paiement',
-                '${c.moyenPaiement.libelle} (${c.moyenPaiement.operateur})',
+                c.moyenPaiement.estMobileMoney
+                    ? '${c.moyenPaiement.libelle} (${c.moyenPaiement.operateur})'
+                    : c.moyenPaiement.libelle,
               ),
               if (c.moyenPaiement.estMobileMoney)
                 _Info('Référence', c.referencePaiement ?? 'Pas encore saisie'),
