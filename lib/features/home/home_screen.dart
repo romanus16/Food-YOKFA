@@ -1,75 +1,115 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../../core/firebase_bootstrap.dart';
+import '../../data/models/categorie.dart';
+import '../../data/repositories/menu_repository.dart';
+import '../menu/produits_screen.dart';
 
-/// Écran d'accueil provisoire.
-///
-/// Les catégories (Nourriture, Boissons, Friandises...) arrivent avec
-/// l'issue #3. Pour l'instant, l'écran confirme que l'application démarre
-/// et indique si Firebase est bien connecté.
+/// Accueil : les catégories du menu sous forme de boutons.
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.firebase});
+  const HomeScreen({super.key});
 
-  final FirebaseStatus firebase;
+  @override
+  Widget build(BuildContext context) {
+    final menu = context.read<MenuRepository>();
+    return Scaffold(
+      appBar: AppBar(title: const Text('Food YOKFA')),
+      body: StreamBuilder<List<Categorie>>(
+        stream: menu.categories(),
+        builder: (context, snap) {
+          if (snap.hasError) {
+            return const _Message(
+              icone: Icons.wifi_off,
+              texte: 'Impossible de charger le menu. Vérifiez votre connexion.',
+            );
+          }
+          if (!snap.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final categories = snap.data!;
+          if (categories.isEmpty) {
+            return const _Message(
+              icone: Icons.restaurant_menu,
+              texte: 'Le menu n\'est pas encore disponible.',
+            );
+          }
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(
+                'Que voulez-vous commander ?',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              GridView.count(
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  for (final c in categories) _CategorieTuile(categorie: c),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CategorieTuile extends StatelessWidget {
+  const _CategorieTuile({required this.categorie});
+
+  final Categorie categorie;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Food YOKFA')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.restaurant_menu,
-                size: 64,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(height: 16),
-              Text('Bienvenue', style: theme.textTheme.headlineSmall),
-              const SizedBox(height: 8),
-              const Text(
-                'Le menu arrive bientôt.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              _FirebaseBadge(firebase: firebase),
-            ],
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      color: theme.colorScheme.primaryContainer,
+      child: InkWell(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => ProduitsScreen(categorie: categorie),
           ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(categorie.icone, style: const TextStyle(fontSize: 48)),
+            const SizedBox(height: 8),
+            Text(
+              categorie.nom,
+              style: theme.textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _FirebaseBadge extends StatelessWidget {
-  const _FirebaseBadge({required this.firebase});
+class _Message extends StatelessWidget {
+  const _Message({required this.icone, required this.texte});
 
-  final FirebaseStatus firebase;
+  final IconData icone;
+  final String texte;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final ok = firebase.isReady;
-    return Card(
-      color: ok ? colors.secondaryContainer : colors.errorContainer,
+    return Center(
       child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
+        padding: const EdgeInsets.all(24),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(ok ? Icons.cloud_done : Icons.cloud_off),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                ok
-                    ? 'Connecté à Firebase'
-                    : 'Firebase non configuré (voir README)',
-              ),
-            ),
+            Icon(icone, size: 48),
+            const SizedBox(height: 12),
+            Text(texte, textAlign: TextAlign.center),
           ],
         ),
       ),
