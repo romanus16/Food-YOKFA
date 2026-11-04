@@ -19,10 +19,24 @@ class DetailCommandeScreen extends StatelessWidget {
       body: StreamBuilder<Commande?>(
         stream: repo.suivre(commandeId),
         builder: (context, snap) {
-          if (!snap.hasData) {
+          if (snap.hasError) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  'Commande inaccessible. Connectez-vous à l\'espace gérant.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+          if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          final c = snap.data!;
+          final c = snap.data;
+          if (c == null) {
+            return const Center(child: Text('Commande introuvable.'));
+          }
           final f = DateFormat('EEEE d MMMM à HH:mm', 'fr');
           final theme = Theme.of(context);
           return ListView(

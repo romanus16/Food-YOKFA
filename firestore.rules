@@ -32,10 +32,14 @@ service cloud.firestore {
       allow write: if gerant();
     }
 
-    // Liste des gérants : chacun peut vérifier son propre rôle.
+    // Liste des gérants : chacun peut vérifier son propre rôle et
+    // enregistrer les jetons de notification de ses téléphones.
     match /gerants/{uid} {
       allow read: if connecte() && request.auth.uid == uid;
-      allow write: if false;
+      allow update: if connecte() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['tokens']);
+      allow create, delete: if false;
     }
 
     match /commandes/{id} {
