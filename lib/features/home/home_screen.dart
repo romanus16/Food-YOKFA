@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../data/models/categorie.dart';
 import '../../data/repositories/menu_repository.dart';
 import '../menu/produits_screen.dart';
+import '../panier/barre_commander.dart';
 
 /// Accueil : les catégories du menu sous forme de boutons.
 class HomeScreen extends StatelessWidget {
@@ -14,6 +15,7 @@ class HomeScreen extends StatelessWidget {
     final menu = context.read<MenuRepository>();
     return Scaffold(
       appBar: AppBar(title: const Text('Food YOKFA')),
+      bottomNavigationBar: const BarreCommander(),
       body: StreamBuilder<List<Categorie>>(
         stream: menu.categories(),
         builder: (context, snap) {
