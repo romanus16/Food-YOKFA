@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'core/firebase_bootstrap.dart';
+import 'core/identite.dart';
 import 'core/theme.dart';
 import 'data/repositories/commande_repository.dart';
 import 'data/repositories/config_repository.dart';
@@ -13,13 +14,21 @@ import 'features/home/home_screen.dart';
 import 'features/panier/panier.dart';
 
 class FoodYokfaApp extends StatelessWidget {
-  const FoodYokfaApp({super.key, required this.firebase, this.db});
+  const FoodYokfaApp({
+    super.key,
+    required this.firebase,
+    this.db,
+    this.identite,
+  });
 
   final FirebaseStatus firebase;
 
   /// Base Firestore à utiliser. Par défaut l'instance Firebase ; les tests
   /// passent une base factice.
   final FirebaseFirestore? db;
+
+  /// Identité du client. Par défaut la connexion anonyme Firebase.
+  final Identite? identite;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +56,7 @@ class FoodYokfaApp extends StatelessWidget {
         Provider(create: (_) => CommandeRepository(base)),
         Provider(create: (_) => ConfigRepository(base)),
         ChangeNotifierProvider(create: (_) => Panier()),
+        Provider<Identite>(create: (_) => identite ?? IdentiteFirebase()),
       ],
       child: app,
     );
