@@ -40,7 +40,9 @@ Sans configuration Firebase, l'application démarre quand même et affiche
 ## Configurer Firebase (une seule fois)
 
 1. Créez un projet sur la [console Firebase](https://console.firebase.google.com/).
-2. Dans le projet, activez **Firestore Database** et **Authentication**.
+2. Dans le projet, activez **Firestore Database** et **Authentication**, avec
+   les fournisseurs **Anonyme** (clients, sans inscription) et
+   **Adresse e-mail/Mot de passe** (gérants).
 3. À la racine du dépôt :
 
    ```bash
