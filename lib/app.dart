@@ -10,6 +10,7 @@ import 'data/repositories/config_repository.dart';
 import 'data/repositories/menu_repository.dart';
 import 'features/home/firebase_absent_screen.dart';
 import 'features/home/home_screen.dart';
+import 'features/panier/panier.dart';
 
 class FoodYokfaApp extends StatelessWidget {
   const FoodYokfaApp({super.key, required this.firebase, this.db});
@@ -45,6 +46,7 @@ class FoodYokfaApp extends StatelessWidget {
         Provider(create: (_) => MenuRepository(base)),
         Provider(create: (_) => CommandeRepository(base)),
         Provider(create: (_) => ConfigRepository(base)),
+        ChangeNotifierProvider(create: (_) => Panier()),
       ],
       child: app,
     );
