@@ -99,6 +99,12 @@ class SuiviPayee extends StatelessWidget {
             ),
           ),
         ),
+        const SizedBox(height: 8),
+        // Secours si la caméra du livreur ne fonctionne pas.
+        SelectableText(
+          'Code : ${commande.codeQr}',
+          style: theme.textTheme.bodySmall,
+        ),
         const SizedBox(height: 12),
         Text(
           'Livraison : ${commande.batiment.libelle}',

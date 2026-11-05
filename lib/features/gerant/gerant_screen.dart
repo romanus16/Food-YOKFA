@@ -4,11 +4,15 @@ import 'package:provider/provider.dart';
 import '../../core/auth_gerant.dart';
 import 'commandes_gerant_screen.dart';
 import 'connexion_gerant_screen.dart';
+import 'scan_livraison_screen.dart';
 
 /// Entrée de l'espace gérant : connexion, vérification du rôle,
 /// puis accès aux outils du gérant.
 class GerantScreen extends StatelessWidget {
-  const GerantScreen({super.key});
+  const GerantScreen({super.key, this.avecCamera = true});
+
+  /// `false` dans les tests (pas de caméra).
+  final bool avecCamera;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +36,7 @@ class GerantScreen extends StatelessWidget {
               );
             }
             if (!role.data!) return _NonAutorise(compte: compte);
-            return const EspaceGerant();
+            return EspaceGerant(avecCamera: avecCamera);
           },
         );
       },
@@ -40,9 +44,19 @@ class GerantScreen extends StatelessWidget {
   }
 }
 
-/// Outils du gérant. Les onglets Scan et Menu s'ajoutent ici.
-class EspaceGerant extends StatelessWidget {
-  const EspaceGerant({super.key});
+/// Outils du gérant, un onglet par outil.
+class EspaceGerant extends StatefulWidget {
+  const EspaceGerant({super.key, this.avecCamera = true});
+
+  /// `false` dans les tests (pas de caméra).
+  final bool avecCamera;
+
+  @override
+  State<EspaceGerant> createState() => _EspaceGerantState();
+}
+
+class _EspaceGerantState extends State<EspaceGerant> {
+  int _onglet = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +65,24 @@ class EspaceGerant extends StatelessWidget {
         title: const Text('Espace gérant'),
         actions: const [BoutonDeconnexion()],
       ),
-      body: const CommandesGerantScreen(),
+      body: switch (_onglet) {
+        0 => const CommandesGerantScreen(),
+        _ => ScanLivraisonScreen(avecCamera: widget.avecCamera),
+      },
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _onglet,
+        onDestinationSelected: (i) => setState(() => _onglet = i),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.receipt_long),
+            label: 'Commandes',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.qr_code_scanner),
+            label: 'Scanner',
+          ),
+        ],
+      ),
     );
   }
 }
