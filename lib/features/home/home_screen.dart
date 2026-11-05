@@ -23,8 +23,11 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.restaurant_menu,
-                  size: 64, color: theme.colorScheme.primary),
+              Icon(
+                Icons.restaurant_menu,
+                size: 64,
+                color: theme.colorScheme.primary,
+              ),
               const SizedBox(height: 16),
               Text('Bienvenue', style: theme.textTheme.headlineSmall),
               const SizedBox(height: 8),
