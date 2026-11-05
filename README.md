@@ -5,7 +5,7 @@ T-Money ou Flooz, reçoit un QR code, et le livreur scanne ce code pour confirme
 la livraison. Le gérant est notifié à chaque commande.
 
 Le détail des fonctionnalités est dans le
-[cahier des charges](https://claude.ai/artifact/QaRMKPNcdCnKvsV2uZkRf7) et dans
+[cahier des charges](docs/cahier-des-charges.docx) et dans
 les [issues](https://github.com/romanus16/food-yokfa/issues).
 
 ## Technologies
