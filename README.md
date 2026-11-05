@@ -59,6 +59,26 @@ Sans configuration Firebase, l'application démarre quand même et affiche
 
 5. Relancez l'application : l'accueil doit afficher « Connecté à Firebase ».
 
+## Données (Firestore)
+
+| Collection | Contenu |
+| --- | --- |
+| `categories` | nom, icône (emoji), ordre, visible |
+| `produits` | nom, categorieId, prix (FCFA entier), photoUrl, disponible, visible, ordre |
+| `commandes` | clientId, lignes (produit, nom, quantité, prix unitaire), total, heureSouhaitee, filiere, batiment (`nouveau` / `ancien`), moyenPaiement (`tmoney` / `flooz`), referencePaiement, statut, codeQr, creeLe, payeeLe, livreeLe |
+| `config/paiement` | numeroTmoney, numeroFlooz (comptes marchands) |
+| `gerants/{uid}` | un document par gérant (son contenu n'importe pas) |
+
+Statuts d'une commande : `en_attente_paiement` → `payee` → `livree`
+(ou `annulee`).
+
+### Donner le rôle de gérant à quelqu'un
+
+1. La personne crée son compte gérant dans l'appli (e-mail et mot de passe).
+2. Dans la console Firebase, **Authentication** : copiez son UID.
+3. Dans **Firestore** : créez le document `gerants/<UID>` (un champ
+   quelconque, par exemple `nom: "Romaric"`).
+
 ## Organisation du code
 
 ```
@@ -70,6 +90,10 @@ lib/
     firebase_bootstrap.dart initialisation Firebase sans planter l'appli
     format.dart             formatage des montants en FCFA (1 000 F)
     theme.dart              couleurs
+  data/
+    models/                 Categorie, Produit, Commande, ConfigPaiement
+    repositories/           accès Firestore (menu, commandes, config)
+    menu_demo.dart          menu d'exemple à charger au démarrage
   features/
     home/                   écran d'accueil (catégories : issue #3)
 firestore.rules             règles de sécurité Firestore
