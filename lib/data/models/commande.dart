@@ -33,12 +33,22 @@ enum Batiment {
 
 enum MoyenPaiement {
   tmoney('tmoney', 'T-Money', 'Togocel'),
-  flooz('flooz', 'Flooz', 'Moov');
+  flooz('flooz', 'Flooz', 'Moov'),
+  especes(
+    'especes',
+    'Espèces à la livraison',
+    'Payez le livreur en main propre',
+  );
 
   const MoyenPaiement(this.code, this.libelle, this.operateur);
   final String code;
   final String libelle;
+
+  /// Opérateur mobile money, ou courte explication pour les espèces.
   final String operateur;
+
+  /// Paiement fait avant la livraison, sur un compte marchand.
+  bool get estMobileMoney => this != especes;
 
   static MoyenPaiement fromCode(String? code) => MoyenPaiement.values
       .firstWhere((m) => m.code == code, orElse: () => tmoney);
@@ -117,6 +127,15 @@ class Commande {
   int get total => lignes.fold(0, (s, l) => s + l.sousTotal);
 
   int get nombreArticles => lignes.fold(0, (s, l) => s + l.quantite);
+
+  /// Commande en espèces pas encore livrée : le livreur doit encaisser
+  /// [total] au moment du scan.
+  bool get aEncaisser =>
+      moyenPaiement == MoyenPaiement.especes &&
+      statut == StatutCommande.enAttentePaiement;
+
+  /// Commande prête à partir en livraison : payée, ou en espèces.
+  bool get aLivrer => statut == StatutCommande.payee || aEncaisser;
 
   factory Commande.fromMap(String id, Map<String, dynamic> data) {
     return Commande(

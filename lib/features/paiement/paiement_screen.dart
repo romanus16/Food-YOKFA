@@ -44,6 +44,8 @@ class PaiementScreen extends StatelessWidget {
               _EnTete(commande: c),
               const SizedBox(height: 16),
               switch (c.statut) {
+                StatutCommande.enAttentePaiement when c.aEncaisser =>
+                  SuiviPayee(commande: c),
                 StatutCommande.enAttentePaiement => _APayer(commande: c),
                 StatutCommande.payee => SuiviPayee(commande: c),
                 StatutCommande.livree => const _Info(
@@ -63,7 +65,8 @@ class PaiementScreen extends StatelessWidget {
   }
 }
 
-/// Une fois le paiement validé : le QR code à présenter au livreur.
+/// Une fois le paiement validé (ou tout de suite pour une commande en
+/// espèces) : le QR code à présenter au livreur.
 class SuiviPayee extends StatelessWidget {
   const SuiviPayee({super.key, required this.commande});
 
@@ -75,10 +78,26 @@ class SuiviPayee extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'Paiement confirmé',
+          commande.aEncaisser
+              ? 'Paiement en espèces à la livraison'
+              : 'Paiement confirmé',
           style: theme.textTheme.titleLarge,
           textAlign: TextAlign.center,
         ),
+        const SizedBox(height: 8),
+        if (commande.aEncaisser)
+          Card(
+            color: theme.colorScheme.primaryContainer,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                'Préparez ${formatFcfa(commande.total)} pour le livreur.',
+                key: const Key('montant-especes'),
+                style: theme.textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
         const SizedBox(height: 8),
         const Text(
           'Montrez ce QR code au livreur à la livraison.',

@@ -93,12 +93,14 @@ Mise en service :
 | --- | --- |
 | `categories` | nom, icône (emoji), ordre, visible |
 | `produits` | nom, categorieId, prix (FCFA entier), photoUrl, disponible, visible, ordre |
-| `commandes` | clientId, lignes (produit, nom, quantité, prix unitaire), total, heureSouhaitee, filiere, batiment (`nouveau` / `ancien`), moyenPaiement (`tmoney` / `flooz`), referencePaiement, statut, codeQr, creeLe, payeeLe, livreeLe |
+| `commandes` | clientId, lignes (produit, nom, quantité, prix unitaire), total, heureSouhaitee, filiere, batiment (`nouveau` / `ancien`), moyenPaiement (`tmoney` / `flooz` / `especes`), referencePaiement, statut, codeQr, creeLe, payeeLe, livreeLe |
 | `config/paiement` | numeroTmoney, numeroFlooz (comptes marchands) |
 | `gerants/{uid}` | un document par gérant (son contenu n'importe pas) |
 
 Statuts d'une commande : `en_attente_paiement` → `payee` → `livree`
-(ou `annulee`).
+(ou `annulee`). Une commande en espèces passe directement de
+`en_attente_paiement` à `livree` quand le livreur scanne le QR code et
+confirme avoir reçu l'argent.
 
 ### Donner le rôle de gérant à quelqu'un
 

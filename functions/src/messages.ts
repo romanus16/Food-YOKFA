@@ -12,6 +12,7 @@ export interface CommandeDoc {
   batiment?: string;
   heureSouhaitee?: Date;
   referencePaiement?: string | null;
+  moyenPaiement?: string;
   statut?: string;
 }
 
@@ -52,6 +53,9 @@ export function nouvelleCommande(c: CommandeDoc): {
   const morceaux = [resume(c)];
   if (c.batiment) morceaux.push(BATIMENTS[c.batiment] ?? c.batiment);
   if (c.heureSouhaitee) morceaux.push(`pour ${heure(c.heureSouhaitee)}`);
+  if (c.moyenPaiement === "especes") {
+    morceaux.push(`espèces ${fcfa(c.total ?? 0)} à encaisser`);
+  }
   return {
     titre: "Nouvelle commande",
     corps: morceaux.join(", "),
