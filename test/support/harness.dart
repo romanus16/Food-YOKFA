@@ -20,6 +20,7 @@ Widget monter(
 }) {
   return MultiProvider(
     providers: [
+      Provider<FirebaseFirestore>.value(value: db),
       Provider(create: (_) => MenuRepository(db)),
       Provider(create: (_) => CommandeRepository(db)),
       Provider(create: (_) => ConfigRepository(db)),
