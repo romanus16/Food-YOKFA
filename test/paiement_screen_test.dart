@@ -6,6 +6,7 @@ import 'package:food_yokfa/data/models/config_paiement.dart';
 import 'package:food_yokfa/data/repositories/commande_repository.dart';
 import 'package:food_yokfa/data/repositories/config_repository.dart';
 import 'package:food_yokfa/features/paiement/paiement_screen.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import 'support/harness.dart';
 
@@ -70,6 +71,11 @@ void main() {
     await CommandeRepository(db).validerPaiement(id);
     await tester.pumpAndSettle();
     expect(find.byType(SuiviPayee), findsOneWidget);
+    expect(find.text('Paiement confirmé'), findsOneWidget);
+    final qr = tester.widget<QrImageView>(find.byType(QrImageView));
+    final c = (await CommandeRepository(db).lire(id))!;
+    expect(c.codeQr, hasLength(24));
+    expect(qr.semanticsLabel, 'QR code de la commande');
   });
 
   testWidgets('numéro marchand non configuré : message clair', (tester) async {

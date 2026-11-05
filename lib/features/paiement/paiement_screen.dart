@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../core/format.dart';
 import '../../data/models/commande.dart';
@@ -44,7 +45,7 @@ class PaiementScreen extends StatelessWidget {
               const SizedBox(height: 16),
               switch (c.statut) {
                 StatutCommande.enAttentePaiement => _APayer(commande: c),
-                StatutCommande.payee => const SuiviPayee(),
+                StatutCommande.payee => SuiviPayee(commande: c),
                 StatutCommande.livree => const _Info(
                   icone: Icons.check_circle,
                   texte: 'Commande livrée. Bon appétit !',
@@ -62,15 +63,48 @@ class PaiementScreen extends StatelessWidget {
   }
 }
 
-/// Contenu affiché une fois le paiement validé (QR code : issue #7).
+/// Une fois le paiement validé : le QR code à présenter au livreur.
 class SuiviPayee extends StatelessWidget {
-  const SuiviPayee({super.key});
+  const SuiviPayee({super.key, required this.commande});
+
+  final Commande commande;
 
   @override
   Widget build(BuildContext context) {
-    return const _Info(
-      icone: Icons.verified,
-      texte: 'Paiement confirmé. Votre commande est en préparation.',
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Text(
+          'Paiement confirmé',
+          style: theme.textTheme.titleLarge,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Montrez ce QR code au livreur à la livraison.',
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16),
+        Center(
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            // Fond blanc obligatoire pour que le code reste lisible
+            // même en thème sombre.
+            color: Colors.white,
+            child: QrImageView(
+              data: commande.codeQr,
+              size: 240,
+              backgroundColor: Colors.white,
+              semanticsLabel: 'QR code de la commande',
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Livraison : ${commande.batiment.libelle}',
+          style: theme.textTheme.bodyMedium,
+        ),
+      ],
     );
   }
 }

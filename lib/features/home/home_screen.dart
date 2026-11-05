@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../data/models/categorie.dart';
 import '../../data/repositories/menu_repository.dart';
+import '../commande/mes_commandes_screen.dart';
 import '../menu/produits_screen.dart';
 import '../panier/barre_commander.dart';
 
@@ -14,7 +15,20 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final menu = context.read<MenuRepository>();
     return Scaffold(
-      appBar: AppBar(title: const Text('Food YOKFA')),
+      appBar: AppBar(
+        title: const Text('Food YOKFA'),
+        actions: [
+          IconButton(
+            tooltip: 'Mes commandes',
+            icon: const Icon(Icons.receipt_long),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const MesCommandesScreen(),
+              ),
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: const BarreCommander(),
       body: StreamBuilder<List<Categorie>>(
         stream: menu.categories(),
