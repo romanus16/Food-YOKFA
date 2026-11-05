@@ -61,6 +61,32 @@ Sans configuration Firebase, l'application démarre quand même et affiche
 
 5. Relancez l'application : l'accueil doit afficher « Connecté à Firebase ».
 
+## Notifications au gérant (Cloud Functions)
+
+Deux fonctions dans `functions/` envoient une notification push à tous les
+téléphones des gérants :
+
+- **Nouvelle commande** : « 3 × Spaghetti, ancien bâtiment, pour 12 h 30 » ;
+- **Paiement à vérifier** : quand le client saisit sa référence de paiement.
+
+Le téléphone d'un gérant s'enregistre automatiquement en ouvrant l'espace
+gérant (jeton stocké dans `gerants/{uid}.tokens`) et se retire à la
+déconnexion. Toucher la notification ouvre le détail de la commande.
+
+Mise en service :
+
+1. Les Cloud Functions demandent le forfait **Blaze** (paiement à l'usage ;
+   le quota gratuit couvre largement un petit volume de commandes).
+2. Déployez :
+
+   ```bash
+   cd functions && npm install && cd ..
+   firebase deploy --only functions
+   ```
+
+3. Sur iPhone, il faut en plus une clé APNs dans la console Firebase
+   (Paramètres du projet → Cloud Messaging).
+
 ## Données (Firestore)
 
 | Collection | Contenu |
@@ -98,6 +124,7 @@ lib/
     menu_demo.dart          menu d'exemple à charger au démarrage
   features/
     home/                   écran d'accueil (catégories : issue #3)
+functions/                  Cloud Functions (notifications), TypeScript
 firestore.rules             règles de sécurité Firestore
 ```
 
@@ -113,6 +140,7 @@ Conventions :
 ```bash
 flutter analyze
 flutter test
+cd functions && npm test
 ```
 
 Ces deux commandes tournent aussi automatiquement sur chaque pull request

@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/auth_gerant.dart';
+import '../../core/notifications_gerant.dart';
 import 'commandes_gerant_screen.dart';
 import 'connexion_gerant_screen.dart';
+import 'detail_commande_screen.dart';
 import 'menu_gerant_screen.dart';
 import 'scan_livraison_screen.dart';
 
@@ -37,7 +41,7 @@ class GerantScreen extends StatelessWidget {
               );
             }
             if (!role.data!) return _NonAutorise(compte: compte);
-            return EspaceGerant(avecCamera: avecCamera);
+            return EspaceGerant(uid: compte.uid, avecCamera: avecCamera);
           },
         );
       },
@@ -47,7 +51,9 @@ class GerantScreen extends StatelessWidget {
 
 /// Outils du gérant, un onglet par outil.
 class EspaceGerant extends StatefulWidget {
-  const EspaceGerant({super.key, this.avecCamera = true});
+  const EspaceGerant({super.key, required this.uid, this.avecCamera = true});
+
+  final String uid;
 
   /// `false` dans les tests (pas de caméra).
   final bool avecCamera;
@@ -58,13 +64,49 @@ class EspaceGerant extends StatefulWidget {
 
 class _EspaceGerantState extends State<EspaceGerant> {
   int _onglet = 0;
+  StreamSubscription<NotificationRecue>? _premierPlan;
+
+  @override
+  void initState() {
+    super.initState();
+    final notifs = context.read<NotificationsGerant>();
+    // Ce téléphone reçoit désormais les notifications de commandes.
+    notifs.activer(widget.uid).catchError((Object _) {});
+    _premierPlan = notifs.premierPlan().listen(_afficher, onError: (_) {});
+  }
+
+  @override
+  void dispose() {
+    _premierPlan?.cancel();
+    super.dispose();
+  }
+
+  void _afficher(NotificationRecue n) {
+    final id = n.commandeId;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${n.titre} : ${n.corps}'),
+        duration: const Duration(seconds: 6),
+        action: id == null
+            ? null
+            : SnackBarAction(
+                label: 'Voir',
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => DetailCommandeScreen(commandeId: id),
+                  ),
+                ),
+              ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Espace gérant'),
-        actions: const [BoutonDeconnexion()],
+        actions: [BoutonDeconnexion(uid: widget.uid)],
       ),
       body: switch (_onglet) {
         0 => const CommandesGerantScreen(),
@@ -94,14 +136,26 @@ class _EspaceGerantState extends State<EspaceGerant> {
 }
 
 class BoutonDeconnexion extends StatelessWidget {
-  const BoutonDeconnexion({super.key});
+  const BoutonDeconnexion({super.key, this.uid});
+
+  /// Gérant dont on coupe les notifications sur ce téléphone.
+  final String? uid;
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
       tooltip: 'Se déconnecter',
       icon: const Icon(Icons.logout),
-      onPressed: () => context.read<AuthGerant>().deconnexion(),
+      onPressed: () async {
+        final auth = context.read<AuthGerant>();
+        if (uid != null) {
+          await context
+              .read<NotificationsGerant>()
+              .desactiver(uid!)
+              .catchError((Object _) {});
+        }
+        await auth.deconnexion();
+      },
     );
   }
 }
