@@ -129,6 +129,14 @@ class SuiviPayee extends StatelessWidget {
           'Livraison : ${commande.batiment.libelle}',
           style: theme.textTheme.bodyMedium,
         ),
+        if (commande.lieu != null)
+          Text(
+            commande.lieu!.repere.isNotEmpty
+                ? commande.lieu!.repere
+                : 'Lieu précis choisi sur la carte',
+            style: theme.textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
       ],
     );
   }

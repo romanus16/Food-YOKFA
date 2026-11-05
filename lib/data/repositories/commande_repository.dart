@@ -41,6 +41,7 @@ class CommandeRepository {
     required String filiere,
     required Batiment batiment,
     required MoyenPaiement moyenPaiement,
+    LieuLivraison? lieu,
   }) async {
     if (lignes.isEmpty) {
       throw const CommandeException('La commande est vide.');
@@ -53,6 +54,7 @@ class CommandeRepository {
       filiere: filiere.trim(),
       batiment: batiment,
       moyenPaiement: moyenPaiement,
+      lieu: (lieu == null || lieu.estVide) ? null : lieu,
       codeQr: genererCodeQr(),
       creeLe: DateTime.now(),
     );
