@@ -1,0 +1,50 @@
+name: Aperçu web
+
+# Publie la version web de l'appli, en mode démo, sur GitHub Pages
+# à chaque mise à jour de main.
+# À activer une fois : Settings → Pages → Source : « GitHub Actions ».
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  construire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.9
+          cache: true
+      - run: flutter pub get
+      # --debug : la base de démo en mémoire ne fonctionne qu'avec les
+      # vérifications de développement activées.
+      - run: >
+          flutter build web --debug --dart-define=DEMO=true
+          --no-web-resources-cdn
+          --base-href "/${{ github.event.repository.name }}/"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  publier:
+    needs: construire
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - id: deploiement
+        uses: actions/deploy-pages@v4
