@@ -1,0 +1,49 @@
+name: APK Android
+
+# Construit l'APK de l'appli (mode démo tant que Firebase n'est pas
+# configuré) et le publie dans la release « apk-demo » du dépôt :
+# https://github.com/<dépôt>/releases/tag/apk-demo
+# On peut aussi le lancer à la main : onglet Actions → APK Android → Run workflow.
+
+on:
+  push:
+    branches: [main, feature/nouveau-design]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.9
+          cache: true
+      - run: flutter pub get
+      # --debug : la base de démo en mémoire ne fonctionne qu'avec les
+      # vérifications de développement activées.
+      - run: >
+          flutter build apk --debug --dart-define=DEMO=true
+          --target-platform android-arm,android-arm64
+      - run: cp build/app/outputs/flutter-apk/app-debug.apk food-yokfa.apk
+      - name: Publier dans la release apk-demo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete apk-demo --yes --cleanup-tag || true
+          gh release create apk-demo food-yokfa.apk \
+            --target "$GITHUB_SHA" --prerelease \
+            --title "Food YOKFA – APK de démonstration" \
+            --notes "Version de démonstration (branche ${GITHUB_REF_NAME}, commit ${GITHUB_SHA::7}). Téléchargez food-yokfa.apk sur le téléphone Android puis ouvrez-le ; autorisez l'installation depuis cette source si le téléphone le demande."
