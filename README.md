@@ -55,6 +55,19 @@ démo, à chaque mise à jour de `main`. À activer une seule fois : dans le dé
 GitHub, **Settings → Pages → Source : GitHub Actions**. L'aperçu est ensuite à
 l'adresse `https://romanus16.github.io/Food-YOKFA/`.
 
+## Installer l'appli sur un téléphone
+
+- **Android** : télécharger
+  [food-yokfa.apk](https://github.com/romanus16/Food-YOKFA/releases/download/apk-demo/food-yokfa.apk)
+  sur le téléphone et l'ouvrir (autoriser l'installation depuis cette source si
+  demandé). L'APK est reconstruit automatiquement par le workflow
+  `apk.yml`.
+- **iPhone** (et aussi Android ou PC) : ouvrir l'aperçu web
+  (https://romanus16.github.io/Food-YOKFA/) dans Safari, puis Partager →
+  « Sur l'écran d'accueil ». L'appli s'ouvre ensuite en plein écran avec son
+  icône. Une vraie appli iPhone (TestFlight / App Store) demande un compte
+  Apple Developer.
+
 ## Configurer Firebase (une seule fois)
 
 1. Créez un projet sur la [console Firebase](https://console.firebase.google.com/).
