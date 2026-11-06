@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/format.dart';
+import '../../core/theme.dart';
+import '../../core/widgets.dart';
 import '../../data/models/commande.dart';
 import '../../data/repositories/commande_repository.dart';
 import 'detail_commande_screen.dart';
@@ -40,7 +42,7 @@ class _CommandesGerantScreenState extends State<CommandesGerantScreen> {
       children: [
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: Row(
             children: [
               for (final (i, (libelle, _)) in _filtres.indexed)
@@ -71,11 +73,15 @@ class _CommandesGerantScreenState extends State<CommandesGerantScreen> {
               final garder = _filtres[_filtre].$2;
               final liste = snap.data!.where(garder).toList();
               if (liste.isEmpty) {
-                return const Center(child: Text('Aucune commande.'));
+                return const EtatVide(
+                  icone: Icons.inbox_rounded,
+                  texte: 'Aucune commande.',
+                );
               }
               return ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                 itemCount: liste.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (_, i) => LigneCommandeGerant(commande: liste[i]),
               );
             },
@@ -95,29 +101,62 @@ class LigneCommandeGerant extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = commande;
     final heure = DateFormat('EEE d MMM HH:mm', 'fr').format(c.heureSouhaitee);
-    return ListTile(
-      title: Text(
-        c.lignes.map((l) => '${l.quantite} × ${l.nom}').join(', '),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
+    final (icone, couleur) = switch (c.statut) {
+      StatutCommande.enAttentePaiement when c.aEncaisser => (
+        Icons.payments_rounded,
+        YokfaCouleurs.vert,
       ),
-      subtitle: Text(
-        [
-          heure,
-          c.batiment.libelle,
-          c.aEncaisser ? 'Espèces à encaisser' : c.statut.libelle,
-        ].join(' · '),
+      StatutCommande.enAttentePaiement => (
+        Icons.hourglass_top_rounded,
+        YokfaCouleurs.orange,
       ),
-      leading: c.lieu?.aPosition == true
-          ? const Tooltip(
-              message: 'Lieu précis sur la carte',
-              child: Icon(Icons.location_on),
-            )
-          : null,
-      trailing: Text(formatFcfa(c.total)),
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => DetailCommandeScreen(commandeId: c.id),
+      StatutCommande.payee => (
+        Icons.delivery_dining_rounded,
+        const Color(0xFF1971C2),
+      ),
+      StatutCommande.livree => (Icons.check_circle_rounded, YokfaCouleurs.vert),
+      StatutCommande.annulee => (Icons.cancel_rounded, const Color(0xFFC92A2A)),
+    };
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        leading: PastilleIcone(icone: icone, couleur: couleur),
+        title: Text(
+          c.lignes.map((l) => '${l.quantite} × ${l.nom}').join(', '),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          [
+            heure,
+            c.batiment.libelle,
+            c.aEncaisser ? 'Espèces à encaisser' : c.statut.libelle,
+          ].join(' · '),
+        ),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              formatFcfa(c.total),
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: YokfaCouleurs.orange,
+              ),
+            ),
+            if (c.lieu?.aPosition == true)
+              const Tooltip(
+                message: 'Lieu précis sur la carte',
+                child: Icon(Icons.location_on_rounded, size: 18),
+              ),
+          ],
+        ),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => DetailCommandeScreen(commandeId: c.id),
+          ),
         ),
       ),
     );

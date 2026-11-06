@@ -280,7 +280,6 @@ class _APayerState extends State<_APayer> {
               controller: _reference,
               decoration: InputDecoration(
                 labelText: 'Référence de paiement',
-                border: const OutlineInputBorder(),
                 errorText: _erreur,
               ),
             ),

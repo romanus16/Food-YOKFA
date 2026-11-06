@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../core/auth_gerant.dart';
 import '../../core/demo.dart';
+import '../../core/photo.dart';
+import '../../core/theme.dart';
 
 class ConnexionGerantScreen extends StatefulWidget {
   const ConnexionGerantScreen({super.key});
@@ -49,10 +51,51 @@ class _ConnexionGerantScreenState extends State<ConnexionGerantScreen> {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(yokfaRayon),
+            child: SizedBox(
+              height: 150,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  const PhotoPlat(url: 'assets/photos/cat_nourriture.jpg'),
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0x11000000), Color(0xCC000000)],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Bienvenue',
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(color: Colors.white),
+                        ),
+                        const Text(
+                          'Validez les paiements, livrez, gérez le menu.',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
           if (ModeDemo.actif) ...[
             const Card(
+              color: YokfaCouleurs.sable,
               child: Padding(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(14),
                 child: Text(
                   'Mode démo : saisissez n\'importe quel e-mail et '
                   'mot de passe pour entrer dans l\'espace gérant.',
@@ -65,19 +108,13 @@ class _ConnexionGerantScreenState extends State<ConnexionGerantScreen> {
             controller: _email,
             keyboardType: TextInputType.emailAddress,
             autofillHints: const [AutofillHints.email],
-            decoration: const InputDecoration(
-              labelText: 'E-mail',
-              border: OutlineInputBorder(),
-            ),
+            decoration: const InputDecoration(labelText: 'E-mail'),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _mdp,
             obscureText: true,
-            decoration: const InputDecoration(
-              labelText: 'Mot de passe',
-              border: OutlineInputBorder(),
-            ),
+            decoration: const InputDecoration(labelText: 'Mot de passe'),
           ),
           if (_erreur != null) ...[
             const SizedBox(height: 12),

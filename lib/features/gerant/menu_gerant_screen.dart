@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/format.dart';
+import '../../core/photo.dart';
 import '../../data/menu_demo.dart';
 import '../../data/models/categorie.dart';
 import '../../data/models/config_paiement.dart';
@@ -72,7 +73,18 @@ class _CategorieSection extends StatelessWidget {
     final menu = context.read<MenuRepository>();
     final c = categorie;
     return ExpansionTile(
-      leading: Text(c.icone, style: const TextStyle(fontSize: 28)),
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: PhotoPlat(
+            url: Photos.categorie(c),
+            emoji: c.icone,
+            tailleEmoji: 24,
+          ),
+        ),
+      ),
       title: Text(c.nom),
       subtitle: Text(
         '${c.visible ? 'Visible' : 'Masquée'} · position ${c.ordre}',
@@ -86,6 +98,18 @@ class _CategorieSection extends StatelessWidget {
               children: [
                 for (final p in produits)
                   ListTile(
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: PhotoPlat(
+                          url: p.photoUrl,
+                          emoji: c.icone,
+                          tailleEmoji: 20,
+                        ),
+                      ),
+                    ),
                     title: Text(p.nom),
                     subtitle: Text(
                       [
@@ -177,6 +201,7 @@ class _DialogueCategorieState extends State<_DialogueCategorie> {
   late final _ordre = TextEditingController(
     text: '${widget.existante?.ordre ?? widget.ordreParDefaut}',
   );
+  late final _photo = TextEditingController(text: widget.existante?.photoUrl);
   late bool _visible = widget.existante?.visible ?? true;
 
   @override
@@ -184,6 +209,7 @@ class _DialogueCategorieState extends State<_DialogueCategorie> {
     _nom.dispose();
     _icone.dispose();
     _ordre.dispose();
+    _photo.dispose();
     super.dispose();
   }
 
@@ -196,6 +222,7 @@ class _DialogueCategorieState extends State<_DialogueCategorie> {
       icone: _icone.text.trim().isEmpty ? '🍽️' : _icone.text.trim(),
       ordre: int.tryParse(_ordre.text) ?? widget.ordreParDefaut,
       visible: _visible,
+      photoUrl: _photo.text.trim().isEmpty ? null : _photo.text.trim(),
     );
     if (widget.existante == null) {
       await menu.ajouterCategorie(c);
@@ -213,30 +240,40 @@ class _DialogueCategorieState extends State<_DialogueCategorie> {
             ? 'Nouvelle catégorie'
             : 'Modifier la catégorie',
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _nom,
-            decoration: const InputDecoration(labelText: 'Nom'),
-          ),
-          TextField(
-            controller: _icone,
-            decoration: const InputDecoration(labelText: 'Emoji'),
-          ),
-          TextField(
-            controller: _ordre,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: const InputDecoration(labelText: 'Position'),
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Visible par les clients'),
-            value: _visible,
-            onChanged: (v) => setState(() => _visible = v),
-          ),
-        ],
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nom,
+              decoration: const InputDecoration(labelText: 'Nom'),
+            ),
+            TextField(
+              controller: _icone,
+              decoration: const InputDecoration(labelText: 'Emoji'),
+            ),
+            TextField(
+              controller: _photo,
+              keyboardType: TextInputType.url,
+              decoration: const InputDecoration(
+                labelText: 'Photo (adresse, facultatif)',
+                hintText: 'https://...',
+              ),
+            ),
+            TextField(
+              controller: _ordre,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: const InputDecoration(labelText: 'Position'),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Visible par les clients'),
+              value: _visible,
+              onChanged: (v) => setState(() => _visible = v),
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
