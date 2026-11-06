@@ -36,9 +36,11 @@ flutter run
 Sans configuration Firebase, l'application démarre en **mode démo** : un
 bandeau l'indique en haut de l'écran, le menu, les numéros marchands et trois
 commandes d'exemple sont déjà chargés, et tout se passe en mémoire (rien n'est
-enregistré, tout repart à zéro au redémarrage). Dans l'espace gérant,
-n'importe quel e-mail et mot de passe permet d'entrer ; au scan, les codes
-`DEMO-PAYEE` et `DEMO-ESPECES` peuvent être saisis à la main.
+enregistré, tout repart à zéro au redémarrage). Dans l'espace gérant et
+l'espace livreur, n'importe quel e-mail et mot de passe permet d'entrer ; au
+scan, les codes `DEMO-PAYEE` et `DEMO-ESPECES` peuvent être saisis à la main.
+Codes promo d'exemple : `BIENVENUE` (-10 %) et `ETUDIANT` (-200 F dès
+1 500 F). Deux livreurs sont déjà dans l'équipe et une demande attend.
 
 Le mode démo ne fonctionne que dans une version de développement
 (`flutter run`, bouton Run d'Android Studio). Pour le forcer alors que Firebase
@@ -135,8 +137,8 @@ volume ; si l'appli grandit beaucoup, passer à un fournisseur de tuiles
 Le menu d'exemple utilise de vraies photos de plats livrées avec l'appli
 (`assets/photos/`, photos Unsplash libres de droits, crédits dans
 `assets/photos/CREDITS.md`). Le gérant peut mettre sa propre photo sur un
-produit ou une catégorie en collant l'adresse web d'une image dans le champ
-« Photo ». Sans photo, l'appli affiche l'emoji de la catégorie sur un fond
+produit ou une catégorie en la choisissant dans la galerie du téléphone
+(bouton « Galerie »), ou en collant l'adresse web d'une image. Sans photo, l'appli affiche l'emoji de la catégorie sur un fond
 dégradé.
 
 Couleurs, police (Poppins, dans `assets/fonts/`) et arrondis sont réglés à un
@@ -148,9 +150,11 @@ seul endroit : `lib/core/theme.dart`.
 | --- | --- |
 | `categories` | nom, icône (emoji), ordre, visible |
 | `produits` | nom, categorieId, prix (FCFA entier), photoUrl, disponible, visible, ordre |
-| `commandes` | clientId, lignes (produit, nom, quantité, prix unitaire), total, heureSouhaitee, filiere, batiment (`nouveau` / `ancien`), moyenPaiement (`tmoney` / `flooz` / `especes`), lieu (latitude, longitude, repere ; facultatif), referencePaiement, statut, codeQr, creeLe, payeeLe, livreeLe |
+| `commandes` | clientId, lignes (produit, nom, quantité, prix unitaire), sousTotal, codePromo, remise, total (à payer), heureSouhaitee, filiere, batiment (`nouveau` / `ancien`), moyenPaiement (`tmoney` / `flooz` / `especes`), lieu (latitude, longitude, repere ; facultatif), referencePaiement, statut, codeQr, creeLe, payeeLe, livreeLe, livreurId, livreurNom, confieeLe |
 | `config/paiement` | numeroTmoney, numeroFlooz (comptes marchands) |
 | `gerants/{uid}` | un document par gérant (son contenu n'importe pas) |
+| `livreurs/{uid}` | nom, telephone, email, actif (`false` tant que le gérant n'a pas accepté) |
+| `codesPromo/{CODE}` | type (`pourcentage` / `montant`), valeur, minimum, actif |
 
 Statuts d'une commande : `en_attente_paiement` → `payee` → `livree`
 (ou `annulee`). Une commande en espèces passe directement de
@@ -163,6 +167,32 @@ confirme avoir reçu l'argent.
 2. Dans la console Firebase, **Authentication** : copiez son UID.
 3. Dans **Firestore** : créez le document `gerants/<UID>` (un champ
    quelconque, par exemple `nom: "Romaric"`).
+
+## Navigation, panier et codes promo
+
+En bas de l'appli, une barre donne accès à **Accueil** (le menu), **Panier**,
+**Commandes** (suivi et QR codes) et **Plus** (espace gérant, espace livreur,
+fonctionnement).
+
+Dans son panier, le client peut saisir un **code promo** : la réduction
+s'applique au total des achats. Le gérant crée les codes dans l'onglet Menu →
+« Codes promo » : pourcentage (ex. `-10 %`) ou montant fixe (ex. `-200 F`),
+panier minimum facultatif, activable et désactivable. La commande garde le
+code utilisé, la réduction et le total payé. Les règles Firestore refusent une
+réduction qui ne correspond pas au code.
+
+## Livreurs
+
+1. Le livreur ouvre l'appli → **Plus** → **Espace livreur**, crée son compte
+   (e-mail et mot de passe) et envoie sa demande (nom, téléphone).
+2. Le gérant l'accepte dans l'onglet **Livreurs** de son espace.
+3. Sur le détail d'une commande payée (ou en espèces), le gérant touche
+   **Confier** et choisit le livreur.
+4. Le livreur voit la commande dans « Mes livraisons » (heure, bâtiment, lieu,
+   bouton Itinéraire, montant à encaisser si espèces). À la remise, il touche
+   **Livrer** et scanne le QR code du client : la commande passe à « Livrée ».
+
+Un livreur ne voit et ne peut livrer que les commandes qui lui sont confiées.
 
 ## Organisation du code
 
@@ -177,11 +207,15 @@ lib/
     format.dart             formatage des montants en FCFA (1 000 F)
     theme.dart              couleurs
   data/
-    models/                 Categorie, Produit, Commande, ConfigPaiement
-    repositories/           accès Firestore (menu, commandes, config)
+    models/                 Categorie, Produit, Commande, CodePromo, Livreur
+    repositories/           accès Firestore (menu, commandes, promos, livreurs)
     menu_demo.dart          menu d'exemple à charger au démarrage
   features/
-    home/                   écran d'accueil (catégories : issue #3)
+    home/                   barre du bas, accueil (catégories), onglet Plus
+    panier/                 panier, code promo, bouton Commander
+    commande/               formulaire de commande, mes commandes
+    gerant/                 espace gérant (commandes, livreurs, menu, promos)
+    livreur/                espace livreur (livraisons confiées, scan)
 functions/                  Cloud Functions (notifications), TypeScript
 firestore.rules             règles de sécurité Firestore
 ```

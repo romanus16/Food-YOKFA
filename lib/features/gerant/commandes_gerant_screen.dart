@@ -132,6 +132,10 @@ class LigneCommandeGerant extends StatelessWidget {
             heure,
             c.batiment.libelle,
             c.aEncaisser ? 'Espèces à encaisser' : c.statut.libelle,
+            if (c.aLivrer)
+              c.livreurNom == null
+                  ? 'Aucun livreur'
+                  : 'Livreur : ${c.livreurNom}',
           ].join(' · '),
         ),
         trailing: Column(

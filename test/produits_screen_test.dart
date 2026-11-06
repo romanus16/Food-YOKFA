@@ -23,6 +23,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Commander'), findsNothing);
 
+    // La barre du bas cache le bas de l'écran de test : on fait défiler.
+    await tester.ensureVisible(find.text('Nourriture'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Nourriture'));
     await tester.pumpAndSettle();
     expect(find.text('Spaghetti'), findsOneWidget);

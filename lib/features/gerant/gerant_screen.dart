@@ -8,6 +8,7 @@ import '../../core/notifications_gerant.dart';
 import 'commandes_gerant_screen.dart';
 import 'connexion_gerant_screen.dart';
 import 'detail_commande_screen.dart';
+import 'livreurs_gerant_screen.dart';
 import 'menu_gerant_screen.dart';
 import 'scan_livraison_screen.dart';
 
@@ -111,6 +112,7 @@ class _EspaceGerantState extends State<EspaceGerant> {
       body: switch (_onglet) {
         0 => const CommandesGerantScreen(),
         1 => ScanLivraisonScreen(avecCamera: widget.avecCamera),
+        2 => const LivreursGerantScreen(),
         _ => const MenuGerantScreen(),
       },
       bottomNavigationBar: NavigationBar(
@@ -124,6 +126,10 @@ class _EspaceGerantState extends State<EspaceGerant> {
           NavigationDestination(
             icon: Icon(Icons.qr_code_scanner),
             label: 'Scanner',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.delivery_dining),
+            label: 'Livreurs',
           ),
           NavigationDestination(
             icon: Icon(Icons.restaurant_menu),

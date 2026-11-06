@@ -6,7 +6,9 @@ import 'package:food_yokfa/core/identite.dart';
 import 'package:food_yokfa/core/notifications_gerant.dart';
 import 'package:food_yokfa/data/repositories/commande_repository.dart';
 import 'package:food_yokfa/data/repositories/config_repository.dart';
+import 'package:food_yokfa/data/repositories/livreur_repository.dart';
 import 'package:food_yokfa/data/repositories/menu_repository.dart';
+import 'package:food_yokfa/data/repositories/promo_repository.dart';
 import 'package:food_yokfa/features/panier/panier.dart';
 import 'package:provider/provider.dart';
 
@@ -26,6 +28,8 @@ Widget monter(
       Provider(create: (_) => MenuRepository(db)),
       Provider(create: (_) => CommandeRepository(db)),
       Provider(create: (_) => ConfigRepository(db)),
+      Provider(create: (_) => PromoRepository(db)),
+      Provider(create: (_) => LivreurRepository(db)),
       ChangeNotifierProvider.value(value: panier ?? Panier()),
       Provider<Identite>(create: (_) => IdentiteFactice()),
       Provider<AuthGerant>(create: (_) => auth ?? AuthGerantFactice()),

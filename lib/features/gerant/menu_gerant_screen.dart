@@ -11,7 +11,9 @@ import '../../data/models/config_paiement.dart';
 import '../../data/models/produit.dart';
 import '../../data/repositories/config_repository.dart';
 import '../../data/repositories/menu_repository.dart';
+import '../../data/repositories/promo_repository.dart';
 import 'formulaire_menu.dart';
+import 'promos_gerant_screen.dart';
 
 /// Gestion du menu par le gérant : catégories, produits, numéros marchands.
 class MenuGerantScreen extends StatelessWidget {
@@ -31,6 +33,20 @@ class MenuGerantScreen extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 96),
           children: [
             const _NumerosMarchands(),
+            ListTile(
+              leading: const Icon(Icons.local_offer_rounded),
+              title: const Text('Codes promo'),
+              subtitle: const Text('Réductions sur le total du panier'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => Provider.value(
+                    value: context.read<PromoRepository>(),
+                    child: const PromosGerantScreen(),
+                  ),
+                ),
+              ),
+            ),
             const Divider(),
             if (cats.isEmpty)
               Padding(

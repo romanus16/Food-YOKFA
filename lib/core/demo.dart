@@ -26,6 +26,9 @@ abstract final class ModeDemo {
   static const codePayee = 'DEMO-PAYEE';
   static const codeEspeces = 'DEMO-ESPECES';
 
+  /// Compte ouvert par n'importe quel e-mail en démo (gérant et livreur).
+  static const uidDemo = 'compte-demo';
+
   /// Crée la base de démonstration.
   static Future<FirebaseFirestore> creerBase() async {
     final db = FakeFirebaseFirestore();
@@ -33,6 +36,39 @@ abstract final class ModeDemo {
     await db.collection('config').doc('paiement').set({
       'numeroTmoney': '90 00 00 00',
       'numeroFlooz': '99 00 00 00',
+    });
+    // Livreurs : le compte démo (n'importe quel e-mail) en fait partie,
+    // et une demande attend l'accord du gérant.
+    await db.collection('livreurs').doc(uidDemo).set({
+      'nom': 'Kossi (démo)',
+      'telephone': '90 11 22 33',
+      'email': 'livreur@demo.tg',
+      'actif': true,
+    });
+    await db.collection('livreurs').doc('livreur-ama').set({
+      'nom': 'Ama',
+      'telephone': '91 44 55 66',
+      'email': 'ama@demo.tg',
+      'actif': true,
+    });
+    await db.collection('livreurs').doc('livreur-yao').set({
+      'nom': 'Yao',
+      'telephone': '92 77 88 99',
+      'email': 'yao@demo.tg',
+      'actif': false,
+    });
+    // Codes promo d'exemple.
+    await db.collection('codesPromo').doc('BIENVENUE').set({
+      'type': 'pourcentage',
+      'valeur': 10,
+      'minimum': 0,
+      'actif': true,
+    });
+    await db.collection('codesPromo').doc('ETUDIANT').set({
+      'type': 'montant',
+      'valeur': 200,
+      'minimum': 1500,
+      'actif': true,
     });
     final maintenant = DateTime.now();
     final exemples = [
@@ -81,6 +117,9 @@ abstract final class ModeDemo {
         payeeLe: maintenant.subtract(const Duration(minutes: 5)),
         codeQr: codePayee,
         creeLe: maintenant.subtract(const Duration(minutes: 25)),
+        livreurId: uidDemo,
+        livreurNom: 'Kossi (démo)',
+        confieeLe: maintenant.subtract(const Duration(minutes: 4)),
       ),
       Commande(
         id: '',
@@ -124,7 +163,8 @@ class IdentiteDemo implements Identite {
   Future<String> clientId() async => 'client-demo';
 }
 
-/// En démo, n'importe quel e-mail et mot de passe ouvre l'espace gérant.
+/// En démo, n'importe quel e-mail et mot de passe ouvre l'espace gérant
+/// et l'espace livreur.
 class AuthGerantDemo implements AuthGerant {
   CompteGerant? _compte;
   final _ctrl = StreamController<CompteGerant?>.broadcast();
@@ -146,7 +186,7 @@ class AuthGerantDemo implements AuthGerant {
     if (e.isEmpty || motDePasse.isEmpty) {
       throw Exception('Saisissez un e-mail et un mot de passe.');
     }
-    _changer(CompteGerant(uid: 'gerant-demo', email: e));
+    _changer(CompteGerant(uid: ModeDemo.uidDemo, email: e));
   }
 
   @override

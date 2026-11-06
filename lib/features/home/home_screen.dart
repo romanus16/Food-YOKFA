@@ -5,21 +5,22 @@ import '../../core/photo.dart';
 import '../../core/theme.dart';
 import '../../data/models/categorie.dart';
 import '../../data/repositories/menu_repository.dart';
-import '../commande/mes_commandes_screen.dart';
-import '../gerant/gerant_screen.dart';
 import '../menu/produits_screen.dart';
 import '../panier/barre_commander.dart';
 
 /// Accueil : grande photo d'ambiance, puis les catégories du menu en cartes
 /// photo.
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.ouvrirPanier});
+
+  /// Ouvre l'onglet Panier de la barre du bas (sinon, la page Panier).
+  final VoidCallback? ouvrirPanier;
 
   @override
   Widget build(BuildContext context) {
     final menu = context.read<MenuRepository>();
     return Scaffold(
-      bottomNavigationBar: const BarreCommander(),
+      bottomNavigationBar: BarreCommander(onPressed: ouvrirPanier),
       body: StreamBuilder<List<Categorie>>(
         stream: menu.categories(),
         builder: (context, snap) {
@@ -55,7 +56,7 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-/// Photo d'ambiance avec le nom de l'appli et les boutons du haut.
+/// Photo d'ambiance avec le nom de l'appli.
 class _Entete extends StatelessWidget {
   const _Entete();
 
@@ -98,44 +99,7 @@ class _Entete extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    const _Logo(),
-                    const Spacer(),
-                    _BoutonRond(
-                      tooltip: 'Mes commandes',
-                      icone: Icons.receipt_long_rounded,
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const MesCommandesScreen(),
-                        ),
-                      ),
-                    ),
-                    PopupMenuButton<void>(
-                      tooltip: 'Plus',
-                      icon: const Icon(
-                        Icons.more_vert_rounded,
-                        color: Colors.white,
-                      ),
-                      itemBuilder: (_) => [
-                        PopupMenuItem(
-                          child: const Row(
-                            children: [
-                              Icon(Icons.storefront_rounded),
-                              SizedBox(width: 12),
-                              Text('Espace gérant'),
-                            ],
-                          ),
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => const GerantScreen(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                const _Logo(),
                 const Spacer(),
                 Text(
                   'Bon appétit',
@@ -193,30 +157,6 @@ class _Logo extends StatelessWidget {
           letterSpacing: 0.3,
         ),
       ),
-    );
-  }
-}
-
-class _BoutonRond extends StatelessWidget {
-  const _BoutonRond({
-    required this.tooltip,
-    required this.icone,
-    required this.onPressed,
-  });
-
-  final String tooltip;
-  final IconData icone;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: tooltip,
-      onPressed: onPressed,
-      style: IconButton.styleFrom(
-        backgroundColor: Colors.white.withValues(alpha: 0.18),
-      ),
-      icon: Icon(icone, color: Colors.white),
     );
   }
 }

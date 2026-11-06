@@ -3,7 +3,9 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/format.dart';
+import '../models/code_promo.dart';
 import '../models/commande.dart';
+import '../models/livreur.dart';
 
 /// Erreur métier affichable à l'utilisateur.
 class CommandeException implements Exception {
@@ -42,10 +44,13 @@ class CommandeRepository {
     required Batiment batiment,
     required MoyenPaiement moyenPaiement,
     LieuLivraison? lieu,
+    CodePromo? promo,
   }) async {
     if (lignes.isEmpty) {
       throw const CommandeException('La commande est vide.');
     }
+    final sousTotal = lignes.fold(0, (s, l) => s + l.sousTotal);
+    final remise = promo?.remisePour(sousTotal) ?? 0;
     final commande = Commande(
       id: '',
       clientId: clientId,
@@ -57,6 +62,8 @@ class CommandeRepository {
       lieu: (lieu == null || lieu.estVide) ? null : lieu,
       codeQr: genererCodeQr(),
       creeLe: DateTime.now(),
+      codePromo: remise > 0 ? promo!.code : null,
+      remise: remise,
     );
     final ref = await _commandes.add(commande.toMap());
     return ref.id;
@@ -135,6 +142,90 @@ class CommandeRepository {
     tx.update(doc.reference, {'statut': StatutCommande.annulee.code});
   });
 
+  /// Le gérant confie la commande à un livreur, ou la reprend
+  /// ([livreur] à `null`).
+  Future<void> confier(String id, Livreur? livreur) =>
+      _commandes.doc(id).update({
+        'livreurId': livreur?.uid,
+        'livreurNom': livreur?.nom,
+        'confieeLe': livreur == null ? null : Timestamp.now(),
+      });
+
+  /// Commandes confiées au livreur [uid] et pas encore livrées,
+  /// triées par heure de livraison souhaitée.
+  Stream<List<Commande>> duLivreur(String uid) => _commandes
+      .where('livreurId', isEqualTo: uid)
+      .snapshots()
+      .map(
+        (s) =>
+            s.docs
+                .map((d) => Commande.fromMap(d.id, d.data()))
+                .where((c) => c.aLivrer)
+                .toList()
+              ..sort((a, b) => a.heureSouhaitee.compareTo(b.heureSouhaitee)),
+      );
+
+  /// Le livreur confirme la livraison d'une commande qui lui est confiée,
+  /// avec le code lu dans le QR du client (il doit correspondre).
+  Future<Commande> livrerParLivreur(
+    String commandeId,
+    String codeLu, {
+    required String livreurId,
+    bool especesEncaissees = false,
+  }) {
+    final ref = _commandes.doc(commandeId);
+    return _db.runTransaction((tx) async {
+      final doc = await tx.get(ref);
+      if (!doc.exists) {
+        throw const CommandeException('Commande introuvable.');
+      }
+      final c = Commande.fromMap(doc.id, doc.data()!);
+      if (c.livreurId != livreurId) {
+        throw const CommandeException(
+          'Cette commande n\'est pas confiée à ce livreur.',
+        );
+      }
+      if (codeLu.trim() != c.codeQr) {
+        throw const CommandeException(
+          'Ce QR code ne correspond pas à cette commande.',
+        );
+      }
+      final maj = _majLivraison(c, especesEncaissees);
+      tx.update(ref, maj);
+      return Commande.fromMap(doc.id, {...doc.data()!, ...maj});
+    });
+  }
+
+  /// Champs à écrire pour passer [c] à « Livrée », ou erreur claire.
+  Map<String, dynamic> _majLivraison(Commande c, bool especesEncaissees) {
+    final now = Timestamp.now();
+    final maj = <String, dynamic>{
+      'statut': StatutCommande.livree.code,
+      'livreeLe': now,
+    };
+    switch (c.statut) {
+      case StatutCommande.livree:
+        throw const CommandeException('Cette commande a déjà été livrée.');
+      case StatutCommande.annulee:
+        throw const CommandeException('Cette commande a été annulée.');
+      case StatutCommande.enAttentePaiement:
+        if (c.moyenPaiement != MoyenPaiement.especes) {
+          throw const CommandeException(
+            'Cette commande n\'est pas encore payée.',
+          );
+        }
+        if (!especesEncaissees) {
+          throw CommandeException(
+            'Encaissez ${formatFcfa(c.total)} en espèces avant de confirmer.',
+          );
+        }
+        maj['payeeLe'] = now;
+      case StatutCommande.payee:
+        break;
+    }
+    return maj;
+  }
+
   /// Retrouve la commande correspondant au code lu dans le QR.
   Future<Commande> chercherParCode(String codeQr) async {
     final code = codeQr.trim();
@@ -168,31 +259,7 @@ class CommandeRepository {
     return _db.runTransaction((tx) async {
       final doc = await tx.get(ref);
       final c = Commande.fromMap(doc.id, doc.data() ?? {});
-      final now = Timestamp.now();
-      final maj = <String, dynamic>{
-        'statut': StatutCommande.livree.code,
-        'livreeLe': now,
-      };
-      switch (c.statut) {
-        case StatutCommande.livree:
-          throw const CommandeException('Cette commande a déjà été livrée.');
-        case StatutCommande.annulee:
-          throw const CommandeException('Cette commande a été annulée.');
-        case StatutCommande.enAttentePaiement:
-          if (c.moyenPaiement != MoyenPaiement.especes) {
-            throw const CommandeException(
-              'Cette commande n\'est pas encore payée.',
-            );
-          }
-          if (!especesEncaissees) {
-            throw CommandeException(
-              'Encaissez ${formatFcfa(c.total)} en espèces avant de confirmer.',
-            );
-          }
-          maj['payeeLe'] = now;
-        case StatutCommande.payee:
-          break;
-      }
+      final maj = _majLivraison(c, especesEncaissees);
       tx.update(ref, maj);
       return Commande.fromMap(doc.id, {...?doc.data(), ...maj});
     });

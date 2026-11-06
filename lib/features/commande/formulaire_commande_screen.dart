@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/format.dart';
 import '../../core/identite.dart';
+import '../../core/theme.dart';
 import '../../core/widgets.dart';
 import '../../data/models/commande.dart';
 import '../../data/repositories/commande_repository.dart';
@@ -116,6 +117,7 @@ class _FormulaireCommandeScreenState extends State<FormulaireCommandeScreen> {
           longitude: _point?.longitude,
           repere: _repere.text,
         ),
+        promo: panier.promo,
       );
       panier.vider();
       nav.pushAndRemoveUntil(
@@ -166,6 +168,35 @@ class _FormulaireCommandeScreenState extends State<FormulaireCommandeScreen> {
                           ),
                         ),
                       const Divider(),
+                      if (panier.remise > 0) ...[
+                        Row(
+                          children: [
+                            const Expanded(child: Text('Sous-total')),
+                            Text(formatFcfa(panier.sousTotal)),
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Code promo ${panier.promo!.code}',
+                                  style: const TextStyle(
+                                    color: YokfaCouleurs.vert,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '- ${formatFcfa(panier.remise)}',
+                                style: const TextStyle(
+                                  color: YokfaCouleurs.vert,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       Row(
                         children: [
                           Expanded(

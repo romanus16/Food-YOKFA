@@ -12,10 +12,12 @@ import 'core/notifications_gerant.dart';
 import 'core/theme.dart';
 import 'data/repositories/commande_repository.dart';
 import 'data/repositories/config_repository.dart';
+import 'data/repositories/livreur_repository.dart';
 import 'data/repositories/menu_repository.dart';
+import 'data/repositories/promo_repository.dart';
 import 'features/home/firebase_absent_screen.dart';
 import 'features/gerant/detail_commande_screen.dart';
-import 'features/home/home_screen.dart';
+import 'features/home/accueil_shell.dart';
 import 'features/panier/panier.dart';
 
 class FoodYokfaApp extends StatelessWidget {
@@ -63,7 +65,7 @@ class FoodYokfaApp extends StatelessWidget {
           ? (context, child) => _BandeauDemo(child: child!)
           : null,
       home: firebase.isReady
-          ? const HomeScreen()
+          ? const AccueilShell()
           : FirebaseAbsentScreen(erreur: firebase.error),
     );
     if (!firebase.isReady) return app;
@@ -75,6 +77,8 @@ class FoodYokfaApp extends StatelessWidget {
         Provider(create: (_) => MenuRepository(base)),
         Provider(create: (_) => CommandeRepository(base)),
         Provider(create: (_) => ConfigRepository(base)),
+        Provider(create: (_) => PromoRepository(base)),
+        Provider(create: (_) => LivreurRepository(base)),
         ChangeNotifierProvider(create: (_) => Panier()),
         Provider<Identite>(create: (_) => identite ?? IdentiteFirebase()),
         Provider<AuthGerant>(

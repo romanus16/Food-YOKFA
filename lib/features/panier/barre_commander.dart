@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/format.dart';
-import '../commande/formulaire_commande_screen.dart';
 import 'panier.dart';
+import 'panier_screen.dart';
 
 /// Bouton « Commander » en bas de l'écran, visible dès qu'un produit
-/// a une quantité supérieure à 0.
+/// a une quantité supérieure à 0. Il ouvre le panier (code promo, total).
 class BarreCommander extends StatelessWidget {
-  const BarreCommander({super.key});
+  const BarreCommander({super.key, this.onPressed});
+
+  /// Action du bouton. Par défaut, ouvre la page Panier.
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +40,11 @@ class BarreCommander extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
             ),
           ),
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => const FormulaireCommandeScreen(),
-            ),
-          ),
+          onPressed:
+              onPressed ??
+              () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const PanierScreen()),
+              ),
           child: Row(
             children: [
               Container(

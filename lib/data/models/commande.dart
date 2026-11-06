@@ -143,6 +143,11 @@ class Commande {
     this.lieu,
     this.payeeLe,
     this.livreeLe,
+    this.codePromo,
+    this.remise = 0,
+    this.livreurId,
+    this.livreurNom,
+    this.confieeLe,
   });
 
   final String id;
@@ -168,7 +173,22 @@ class Commande {
   final DateTime? payeeLe;
   final DateTime? livreeLe;
 
-  int get total => lignes.fold(0, (s, l) => s + l.sousTotal);
+  /// Code promo utilisé, s'il y en a un.
+  final String? codePromo;
+
+  /// Réduction du code promo, en FCFA (0 sans code).
+  final int remise;
+
+  /// Livreur à qui le gérant a confié la commande.
+  final String? livreurId;
+  final String? livreurNom;
+  final DateTime? confieeLe;
+
+  /// Total des produits, avant le code promo.
+  int get sousTotal => lignes.fold(0, (s, l) => s + l.sousTotal);
+
+  /// Montant à payer : produits moins la réduction du code promo.
+  int get total => (sousTotal - remise).clamp(0, sousTotal);
 
   int get nombreArticles => lignes.fold(0, (s, l) => s + l.quantite);
 
@@ -201,12 +221,20 @@ class Commande {
       creeLe: _date(data['creeLe']) ?? DateTime.now(),
       payeeLe: _date(data['payeeLe']),
       livreeLe: _date(data['livreeLe']),
+      codePromo: data['codePromo'] as String?,
+      remise: (data['remise'] as num?)?.toInt() ?? 0,
+      livreurId: data['livreurId'] as String?,
+      livreurNom: data['livreurNom'] as String?,
+      confieeLe: _date(data['confieeLe']),
     );
   }
 
   Map<String, dynamic> toMap() => {
     'clientId': clientId,
     'lignes': lignes.map((l) => l.toMap()).toList(),
+    'sousTotal': sousTotal,
+    'codePromo': codePromo,
+    'remise': remise,
     'total': total,
     'heureSouhaitee': Timestamp.fromDate(heureSouhaitee),
     'filiere': filiere,
@@ -219,6 +247,9 @@ class Commande {
     'creeLe': Timestamp.fromDate(creeLe),
     'payeeLe': payeeLe == null ? null : Timestamp.fromDate(payeeLe!),
     'livreeLe': livreeLe == null ? null : Timestamp.fromDate(livreeLe!),
+    'livreurId': livreurId,
+    'livreurNom': livreurNom,
+    'confieeLe': confieeLe == null ? null : Timestamp.fromDate(confieeLe!),
   };
 
   static DateTime? _date(Object? v) {

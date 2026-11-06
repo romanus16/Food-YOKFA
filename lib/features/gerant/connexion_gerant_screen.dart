@@ -6,8 +6,22 @@ import '../../core/demo.dart';
 import '../../core/photo.dart';
 import '../../core/theme.dart';
 
+/// Connexion par e-mail, partagée par l'espace gérant et l'espace livreur.
 class ConnexionGerantScreen extends StatefulWidget {
-  const ConnexionGerantScreen({super.key});
+  const ConnexionGerantScreen({
+    super.key,
+    this.titre = 'Espace gérant',
+    this.accroche = 'Validez les paiements, livrez, gérez le menu.',
+    this.photo = 'assets/photos/cat_nourriture.jpg',
+    this.role = 'gérant',
+  });
+
+  final String titre;
+  final String accroche;
+  final String photo;
+
+  /// « gérant » ou « livreur », pour le bouton de création de compte.
+  final String role;
 
   @override
   State<ConnexionGerantScreen> createState() => _ConnexionGerantScreenState();
@@ -47,7 +61,7 @@ class _ConnexionGerantScreenState extends State<ConnexionGerantScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Espace gérant')),
+      appBar: AppBar(title: Text(widget.titre)),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
@@ -58,7 +72,7 @@ class _ConnexionGerantScreenState extends State<ConnexionGerantScreen> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  const PhotoPlat(url: 'assets/photos/cat_nourriture.jpg'),
+                  PhotoPlat(url: widget.photo),
                   const DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -79,9 +93,9 @@ class _ConnexionGerantScreenState extends State<ConnexionGerantScreen> {
                           style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(color: Colors.white),
                         ),
-                        const Text(
-                          'Validez les paiements, livrez, gérez le menu.',
-                          style: TextStyle(color: Colors.white),
+                        Text(
+                          widget.accroche,
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ],
                     ),
@@ -92,13 +106,13 @@ class _ConnexionGerantScreenState extends State<ConnexionGerantScreen> {
           ),
           const SizedBox(height: 24),
           if (ModeDemo.actif) ...[
-            const Card(
+            Card(
               color: YokfaCouleurs.sable,
               child: Padding(
-                padding: EdgeInsets.all(14),
+                padding: const EdgeInsets.all(14),
                 child: Text(
                   'Mode démo : saisissez n\'importe quel e-mail et '
-                  'mot de passe pour entrer dans l\'espace gérant.',
+                  'mot de passe pour entrer dans l\'${widget.titre.toLowerCase()}.',
                 ),
               ),
             ),
@@ -131,7 +145,7 @@ class _ConnexionGerantScreenState extends State<ConnexionGerantScreen> {
           const SizedBox(height: 8),
           TextButton(
             onPressed: _envoi ? null : () => _agir(true),
-            child: const Text('Créer un compte gérant'),
+            child: Text('Créer un compte ${widget.role}'),
           ),
         ],
       ),
