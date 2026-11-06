@@ -4,9 +4,8 @@ Application mobile de commande de repas : le client choisit ses plats, paie par
 T-Money ou Flooz, reçoit un QR code, et le livreur scanne ce code pour confirmer
 la livraison. Le gérant est notifié à chaque commande.
 
-Le détail des fonctionnalités est dans le
-[cahier des charges](https://github.com/romanus16/food-yokfa/issues) et dans
-les [issues](https://github.com/romanus16/food-yokfa/issues).
+Le détail des fonctionnalités est dans le cahier des charges et dans les
+[issues](https://github.com/romanus16/food-yokfa/issues).
 
 ## Technologies
 
