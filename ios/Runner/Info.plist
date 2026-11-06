@@ -4,6 +4,8 @@
 <dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Votre position sert à placer le lieu de livraison sur la carte.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>La galerie sert à choisir la photo d'un produit ou d'une catégorie du menu.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>La caméra sert à scanner le QR code du client pour confirmer la livraison.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>

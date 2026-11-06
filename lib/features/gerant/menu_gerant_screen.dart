@@ -11,6 +11,7 @@ import '../../data/models/config_paiement.dart';
 import '../../data/models/produit.dart';
 import '../../data/repositories/config_repository.dart';
 import '../../data/repositories/menu_repository.dart';
+import 'formulaire_menu.dart';
 
 /// Gestion du menu par le gérant : catégories, produits, numéros marchands.
 class MenuGerantScreen extends StatelessWidget {
@@ -153,13 +154,14 @@ Future<void> _editerCategorie(
   Categorie? existante,
   int ordreParDefaut,
 ) {
-  return showDialog<void>(
-    context: context,
-    builder: (_) => Provider.value(
-      value: context.read<MenuRepository>(),
-      child: _DialogueCategorie(
-        existante: existante,
-        ordreParDefaut: ordreParDefaut,
+  return Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => Provider.value(
+        value: context.read<MenuRepository>(),
+        child: EditionCategorieScreen(
+          existante: existante,
+          ordreParDefaut: ordreParDefaut,
+        ),
       ),
     ),
   );
@@ -183,17 +185,28 @@ Future<void> _editerProduit(
   );
 }
 
-class _DialogueCategorie extends StatefulWidget {
-  const _DialogueCategorie({this.existante, required this.ordreParDefaut});
+String? _texteOuNull(String? v) {
+  final t = v?.trim() ?? '';
+  return t.isEmpty ? null : t;
+}
+
+/// Ajout ou modification d'une catégorie : photo, emoji, nom, affichage.
+class EditionCategorieScreen extends StatefulWidget {
+  const EditionCategorieScreen({
+    super.key,
+    this.existante,
+    required this.ordreParDefaut,
+  });
 
   final Categorie? existante;
   final int ordreParDefaut;
 
   @override
-  State<_DialogueCategorie> createState() => _DialogueCategorieState();
+  State<EditionCategorieScreen> createState() => _EditionCategorieScreenState();
 }
 
-class _DialogueCategorieState extends State<_DialogueCategorie> {
+class _EditionCategorieScreenState extends State<EditionCategorieScreen> {
+  final _form = GlobalKey<FormState>();
   late final _nom = TextEditingController(text: widget.existante?.nom);
   late final _icone = TextEditingController(
     text: widget.existante?.icone ?? '🍽️',
@@ -201,20 +214,21 @@ class _DialogueCategorieState extends State<_DialogueCategorie> {
   late final _ordre = TextEditingController(
     text: '${widget.existante?.ordre ?? widget.ordreParDefaut}',
   );
-  late final _photo = TextEditingController(text: widget.existante?.photoUrl);
+  late String? _photo = widget.existante?.photoUrl;
   late bool _visible = widget.existante?.visible ?? true;
+  bool _envoi = false;
 
   @override
   void dispose() {
     _nom.dispose();
     _icone.dispose();
     _ordre.dispose();
-    _photo.dispose();
     super.dispose();
   }
 
   Future<void> _enregistrer() async {
-    if (_nom.text.trim().isEmpty) return;
+    if (!_form.currentState!.validate()) return;
+    setState(() => _envoi = true);
     final menu = context.read<MenuRepository>();
     final c = Categorie(
       id: widget.existante?.id ?? '',
@@ -222,7 +236,7 @@ class _DialogueCategorieState extends State<_DialogueCategorie> {
       icone: _icone.text.trim().isEmpty ? '🍽️' : _icone.text.trim(),
       ordre: int.tryParse(_ordre.text) ?? widget.ordreParDefaut,
       visible: _visible,
-      photoUrl: _photo.text.trim().isEmpty ? null : _photo.text.trim(),
+      photoUrl: _texteOuNull(_photo),
     );
     if (widget.existante == null) {
       await menu.ajouterCategorie(c);
@@ -234,58 +248,80 @@ class _DialogueCategorieState extends State<_DialogueCategorie> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(
-        widget.existante == null
-            ? 'Nouvelle catégorie'
-            : 'Modifier la catégorie',
-      ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    return PageFormulaire(
+      titre: widget.existante == null
+          ? 'Nouvelle catégorie'
+          : 'Modifier la catégorie',
+      formKey: _form,
+      onEnregistrer: _envoi ? null : _enregistrer,
+      children: [
+        ChoixPhoto(
+          photo: _photo,
+          emoji: _icone.text.trim().isEmpty ? '🍽️' : _icone.text.trim(),
+          onChanged: (p) => setState(() => _photo = p),
+        ),
+        SectionFormulaire(
+          titre: 'Informations',
+          icone: Icons.category_rounded,
           children: [
-            TextField(
-              controller: _nom,
-              decoration: const InputDecoration(labelText: 'Nom'),
-            ),
-            TextField(
-              controller: _icone,
-              decoration: const InputDecoration(labelText: 'Emoji'),
-            ),
-            TextField(
-              controller: _photo,
-              keyboardType: TextInputType.url,
-              decoration: const InputDecoration(
-                labelText: 'Photo (adresse, facultatif)',
-                hintText: 'https://...',
-              ),
-            ),
-            TextField(
-              controller: _ordre,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(labelText: 'Position'),
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Visible par les clients'),
-              value: _visible,
-              onChanged: (v) => setState(() => _visible = v),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 92,
+                  child: TextFormField(
+                    controller: _icone,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18),
+                    decoration: const InputDecoration(labelText: 'Emoji'),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _nom,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: const InputDecoration(
+                      labelText: 'Nom',
+                      hintText: 'Ex. Desserts',
+                    ),
+                    validator: (v) =>
+                        (v ?? '').trim().isEmpty ? 'Indiquez un nom.' : null,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Annuler'),
+        SectionFormulaire(
+          titre: 'Affichage',
+          icone: Icons.tune_rounded,
+          children: [
+            OptionInterrupteur(
+              titre: 'Visible par les clients',
+              explication: 'La catégorie apparaît sur l\'accueil.',
+              valeur: _visible,
+              onChanged: (v) => setState(() => _visible = v),
+            ),
+            TextFormField(
+              controller: _ordre,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: const InputDecoration(
+                labelText: 'Position',
+                helperText: 'Les petits numéros passent en premier.',
+              ),
+            ),
+          ],
         ),
-        FilledButton(onPressed: _enregistrer, child: const Text('Enregistrer')),
       ],
     );
   }
 }
 
+/// Ajout ou modification d'un produit (nourriture, boisson, friandise,
+/// dessert...) : photo, nom, prix, catégorie, affichage.
 class EditionProduitScreen extends StatefulWidget {
   const EditionProduitScreen({
     super.key,
@@ -306,33 +342,33 @@ class _EditionProduitScreenState extends State<EditionProduitScreen> {
   late final _prix = TextEditingController(
     text: widget.existant == null ? '' : '${widget.existant!.prix}',
   );
-  late final _photo = TextEditingController(text: widget.existant?.photoUrl);
   late final _ordre = TextEditingController(
     text: '${widget.existant?.ordre ?? 0}',
   );
+  late String? _photo = widget.existant?.photoUrl;
   late String _categorieId = widget.existant?.categorieId ?? widget.categorieId;
   late bool _disponible = widget.existant?.disponible ?? true;
   late bool _visible = widget.existant?.visible ?? true;
+  bool _envoi = false;
 
   @override
   void dispose() {
     _nom.dispose();
     _prix.dispose();
-    _photo.dispose();
     _ordre.dispose();
     super.dispose();
   }
 
   Future<void> _enregistrer() async {
     if (!_form.currentState!.validate()) return;
+    setState(() => _envoi = true);
     final menu = context.read<MenuRepository>();
-    final photo = _photo.text.trim();
     final p = Produit(
       id: widget.existant?.id ?? '',
       nom: _nom.text.trim(),
       categorieId: _categorieId,
       prix: int.parse(_prix.text),
-      photoUrl: photo.isEmpty ? null : photo,
+      photoUrl: _texteOuNull(_photo),
       disponible: _disponible,
       visible: _visible,
       ordre: int.tryParse(_ordre.text) ?? 0,
@@ -348,86 +384,94 @@ class _EditionProduitScreenState extends State<EditionProduitScreen> {
   @override
   Widget build(BuildContext context) {
     final menu = context.read<MenuRepository>();
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.existant == null ? 'Nouveau produit' : 'Modifier le produit',
-        ),
-      ),
-      body: Form(
-        key: _form,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+    return StreamBuilder<List<Categorie>>(
+      stream: menu.categories(toutes: true),
+      builder: (context, snap) {
+        final cats = snap.data ?? const <Categorie>[];
+        final categorie = cats.where((c) => c.id == _categorieId).firstOrNull;
+        return PageFormulaire(
+          titre: widget.existant == null
+              ? 'Nouveau produit'
+              : 'Modifier le produit',
+          formKey: _form,
+          onEnregistrer: _envoi ? null : _enregistrer,
           children: [
-            TextFormField(
-              controller: _nom,
-              decoration: const InputDecoration(labelText: 'Nom'),
-              validator: (v) =>
-                  (v ?? '').trim().isEmpty ? 'Indiquez un nom.' : null,
+            ChoixPhoto(
+              photo: _photo,
+              emoji: categorie?.icone ?? '🍽️',
+              onChanged: (p) => setState(() => _photo = p),
             ),
-            TextFormField(
-              controller: _prix,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(
-                labelText: 'Prix',
-                suffixText: 'F CFA',
-              ),
-              validator: (v) => (int.tryParse(v ?? '') ?? 0) <= 0
-                  ? 'Indiquez un prix.'
-                  : null,
-            ),
-            StreamBuilder<List<Categorie>>(
-              stream: menu.categories(toutes: true),
-              builder: (context, snap) {
-                final cats = snap.data ?? const <Categorie>[];
-                if (cats.isEmpty) return const SizedBox.shrink();
-                return DropdownButtonFormField<String>(
-                  initialValue: cats.any((c) => c.id == _categorieId)
-                      ? _categorieId
+            SectionFormulaire(
+              titre: 'Informations',
+              icone: Icons.restaurant_menu_rounded,
+              children: [
+                TextFormField(
+                  controller: _nom,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: const InputDecoration(
+                    labelText: 'Nom',
+                    hintText: 'Ex. Spaghetti',
+                  ),
+                  validator: (v) =>
+                      (v ?? '').trim().isEmpty ? 'Indiquez un nom.' : null,
+                ),
+                TextFormField(
+                  controller: _prix,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: const InputDecoration(
+                    labelText: 'Prix',
+                    suffixText: 'F CFA',
+                  ),
+                  validator: (v) => (int.tryParse(v ?? '') ?? 0) <= 0
+                      ? 'Indiquez un prix.'
                       : null,
-                  decoration: const InputDecoration(labelText: 'Catégorie'),
-                  items: [
-                    for (final c in cats)
-                      DropdownMenuItem(value: c.id, child: Text(c.nom)),
-                  ],
-                  onChanged: (v) => setState(() => _categorieId = v!),
-                );
-              },
+                ),
+                if (cats.isNotEmpty)
+                  DropdownButtonFormField<String>(
+                    initialValue: categorie?.id,
+                    decoration: const InputDecoration(labelText: 'Catégorie'),
+                    items: [
+                      for (final c in cats)
+                        DropdownMenuItem(
+                          value: c.id,
+                          child: Text('${c.icone}  ${c.nom}'),
+                        ),
+                    ],
+                    onChanged: (v) => setState(() => _categorieId = v!),
+                  ),
+              ],
             ),
-            TextFormField(
-              controller: _photo,
-              keyboardType: TextInputType.url,
-              decoration: const InputDecoration(
-                labelText: 'Lien de la photo (facultatif)',
-              ),
-            ),
-            TextFormField(
-              controller: _ordre,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(labelText: 'Position'),
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Disponible'),
-              value: _disponible,
-              onChanged: (v) => setState(() => _disponible = v),
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Visible par les clients'),
-              value: _visible,
-              onChanged: (v) => setState(() => _visible = v),
-            ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: _enregistrer,
-              child: const Text('Enregistrer'),
+            SectionFormulaire(
+              titre: 'Affichage',
+              icone: Icons.tune_rounded,
+              children: [
+                OptionInterrupteur(
+                  titre: 'Disponible',
+                  explication: 'Les clients peuvent le commander.',
+                  valeur: _disponible,
+                  onChanged: (v) => setState(() => _disponible = v),
+                ),
+                OptionInterrupteur(
+                  titre: 'Visible par les clients',
+                  explication: 'Le produit apparaît dans le menu.',
+                  valeur: _visible,
+                  onChanged: (v) => setState(() => _visible = v),
+                ),
+                TextFormField(
+                  controller: _ordre,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: const InputDecoration(
+                    labelText: 'Position',
+                    helperText: 'Les petits numéros passent en premier.',
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 }

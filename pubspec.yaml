@@ -48,6 +48,8 @@ dependencies:
   latlong2: ^0.10.1
   geolocator: ^14.1.2
   url_launcher: ^6.3.3
+  # Choix d'une photo dans la galerie (espace gérant).
+  image_picker: ^1.2.4
   # Base locale du mode démo (et des tests).
   fake_cloud_firestore: ^4.5.0
 
