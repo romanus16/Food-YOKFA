@@ -138,7 +138,7 @@ class _Entete extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  'Bon appétit 👋',
+                  'Bon appétit',
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: Colors.white.withValues(alpha: 0.9),
                   ),
@@ -343,23 +343,6 @@ class _CategorieTuile extends StatelessWidget {
                       end: Alignment.bottomCenter,
                       colors: [Color(0x00000000), Color(0xD9000000)],
                       stops: [0.45, 1],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 10,
-                  left: 10,
-                  child: Container(
-                    width: 38,
-                    height: 38,
-                    alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      categorie.icone,
-                      style: const TextStyle(fontSize: 20),
                     ),
                   ),
                 ),
