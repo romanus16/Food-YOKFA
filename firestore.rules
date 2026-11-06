@@ -5,7 +5,9 @@ rules_version = '2';
 // Rôles :
 // - client : tout utilisateur connecté (connexion anonyme dans l'appli) ;
 // - gérant : utilisateur dont l'uid a un document dans `gerants/{uid}`
-//   (à créer à la main depuis la console Firebase, voir README).
+//   (à créer à la main depuis la console Firebase, voir README) ;
+// - livreur : utilisateur dont le document `livreurs/{uid}` est actif
+//   (il crée sa demande, le gérant l'accepte depuis l'appli).
 service cloud.firestore {
   match /databases/{database}/documents {
     function connecte() {
@@ -14,6 +16,15 @@ service cloud.firestore {
     function gerant() {
       return connecte()
         && exists(/databases/$(database)/documents/gerants/$(request.auth.uid));
+    }
+
+    function livreurActif() {
+      return connecte()
+        && exists(/databases/$(database)/documents/livreurs/$(request.auth.uid))
+        && get(/databases/$(database)/documents/livreurs/$(request.auth.uid)).data.actif == true;
+    }
+    function promo(code) {
+      return get(/databases/$(database)/documents/codesPromo/$(code)).data;
     }
 
     // Menu : lisible par tous, modifiable par les gérants.
@@ -42,6 +53,21 @@ service cloud.firestore {
       allow create, delete: if false;
     }
 
+    // Codes promo : le client lit un code qu'il connaît (pas la liste).
+    match /codesPromo/{code} {
+      allow get: if true;
+      allow list, write: if gerant();
+    }
+
+    // Livreurs : chacun envoie sa demande (inactive) et voit sa fiche ;
+    // le gérant accepte, met en pause ou retire.
+    match /livreurs/{uid} {
+      allow read: if gerant() || (connecte() && request.auth.uid == uid);
+      allow create: if connecte() && request.auth.uid == uid
+        && request.resource.data.actif == false;
+      allow update, delete: if gerant();
+    }
+
     match /commandes/{id} {
       // Le client crée sa commande, forcément « en attente de paiement ».
       allow create: if connecte()
@@ -49,10 +75,13 @@ service cloud.firestore {
         && request.resource.data.statut == 'en_attente_paiement'
         && request.resource.data.payeeLe == null
         && request.resource.data.livreeLe == null
-        && request.resource.data.lignes.size() > 0;
+        && request.resource.data.lignes.size() > 0
+        && request.resource.data.get('livreurId', null) == null
+        && remiseValide(request.resource.data);
 
       allow read: if gerant()
-        || (connecte() && resource.data.clientId == request.auth.uid);
+        || (connecte() && resource.data.clientId == request.auth.uid)
+        || (livreurActif() && resource.data.livreurId == request.auth.uid);
 
       // Le client peut seulement saisir sa référence de paiement,
       // tant que la commande attend le paiement. Le gérant fait le reste.
@@ -61,9 +90,32 @@ service cloud.firestore {
           && resource.data.clientId == request.auth.uid
           && resource.data.statut == 'en_attente_paiement'
           && request.resource.data.diff(resource.data).affectedKeys()
-               .hasOnly(['referencePaiement']));
+               .hasOnly(['referencePaiement']))
+        // Le livreur à qui la commande est confiée la passe à « Livrée »
+        // (payée avant, ou en espèces encaissées à la livraison).
+        || (livreurActif()
+          && resource.data.livreurId == request.auth.uid
+          && request.resource.data.statut == 'livree'
+          && (resource.data.statut == 'payee'
+            || (resource.data.statut == 'en_attente_paiement'
+              && resource.data.moyenPaiement == 'especes'))
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['statut', 'livreeLe', 'payeeLe']));
 
       allow delete: if false;
+    }
+
+    // Réduction cohérente avec le code promo utilisé (aucune sans code).
+    function remiseValide(c) {
+      return c.get('codePromo', null) == null
+        ? c.get('remise', 0) == 0
+        : (exists(/databases/$(database)/documents/codesPromo/$(c.codePromo))
+          && promo(c.codePromo).actif == true
+          && c.sousTotal >= promo(c.codePromo).get('minimum', 0)
+          && c.remise > 0
+          && c.remise <= (promo(c.codePromo).type == 'pourcentage'
+            ? c.sousTotal * promo(c.codePromo).valeur / 100
+            : promo(c.codePromo).valeur));
     }
 
     // Tout le reste est fermé.

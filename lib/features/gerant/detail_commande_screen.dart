@@ -3,8 +3,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/format.dart';
+import '../../core/theme.dart';
 import '../../data/models/commande.dart';
+import '../../data/models/livreur.dart';
 import '../../data/repositories/commande_repository.dart';
+import '../../data/repositories/livreur_repository.dart';
 import '../lieu/carte.dart';
 
 class DetailCommandeScreen extends StatelessWidget {
@@ -53,6 +56,28 @@ class DetailCommandeScreen extends StatelessWidget {
                   ],
                 ),
               const Divider(),
+              if (c.remise > 0) ...[
+                Row(
+                  children: [
+                    const Expanded(child: Text('Sous-total')),
+                    Text(formatFcfa(c.sousTotal)),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Code promo ${c.codePromo ?? ''}',
+                        style: const TextStyle(color: YokfaCouleurs.vert),
+                      ),
+                    ),
+                    Text(
+                      '- ${formatFcfa(c.remise)}',
+                      style: const TextStyle(color: YokfaCouleurs.vert),
+                    ),
+                  ],
+                ),
+              ],
               Row(
                 children: [
                   Expanded(
@@ -80,7 +105,12 @@ class DetailCommandeScreen extends StatelessWidget {
               _Info('Commandée le', f.format(c.creeLe)),
               if (c.payeeLe != null) _Info('Payée le', f.format(c.payeeLe!)),
               if (c.livreeLe != null) _Info('Livrée le', f.format(c.livreeLe!)),
-              const SizedBox(height: 24),
+              if (c.livreurNom != null) _Info('Livreur', c.livreurNom!),
+              const SizedBox(height: 16),
+              if (c.aLivrer) ...[
+                _CarteLivreur(commande: c),
+                const SizedBox(height: 12),
+              ],
               if (c.aEncaisser)
                 Card(
                   color: theme.colorScheme.primaryContainer,
@@ -170,6 +200,109 @@ class DetailCommandeScreen extends StatelessWidget {
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(e.toString())));
     }
+  }
+}
+
+/// Livreur à qui la commande est confiée, avec le bouton pour la confier.
+class _CarteLivreur extends StatelessWidget {
+  const _CarteLivreur({required this.commande});
+
+  final Commande commande;
+
+  Future<void> _choisir(BuildContext context) async {
+    final livreurs = context.read<LivreurRepository>();
+    final repo = context.read<CommandeRepository>();
+    final messenger = ScaffoldMessenger.of(context);
+    final choix = await showModalBottomSheet<(Livreur?,)>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => StreamBuilder<List<Livreur>>(
+        stream: livreurs.tous(),
+        builder: (ctx, snap) {
+          final actifs = (snap.data ?? const <Livreur>[])
+              .where((l) => l.actif)
+              .toList();
+          return SafeArea(
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.only(bottom: 16),
+              children: [
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(24, 0, 24, 8),
+                  child: Text(
+                    'Confier la commande à',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
+                ),
+                if (snap.hasData && actifs.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text(
+                      'Aucun livreur pour le moment. Ajoutez-en dans '
+                      'l\'onglet « Livreurs ».',
+                    ),
+                  ),
+                for (final l in actifs)
+                  ListTile(
+                    leading: const Icon(Icons.delivery_dining_rounded),
+                    title: Text(l.nom),
+                    subtitle: l.telephone.isEmpty ? null : Text(l.telephone),
+                    trailing: l.uid == commande.livreurId
+                        ? const Icon(Icons.check, color: YokfaCouleurs.vert)
+                        : null,
+                    onTap: () => Navigator.pop(ctx, (l,)),
+                  ),
+                if (commande.livreurId != null)
+                  ListTile(
+                    leading: const Icon(Icons.undo_rounded),
+                    title: const Text('Ne plus la confier'),
+                    onTap: () => Navigator.pop(ctx, (null,)),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+    if (choix == null) return;
+    try {
+      await repo.confier(commande.id, choix.$1);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            choix.$1 == null
+                ? 'La commande n\'est plus confiée.'
+                : 'Commande confiée à ${choix.$1!.nom}',
+          ),
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final nom = commande.livreurNom;
+    return Card(
+      child: ListTile(
+        leading: Icon(
+          Icons.delivery_dining_rounded,
+          color: nom == null ? YokfaCouleurs.gris : YokfaCouleurs.orange,
+          size: 30,
+        ),
+        title: Text(nom == null ? 'Aucun livreur' : 'Confiée à $nom'),
+        subtitle: Text(
+          nom == null
+              ? 'Confiez-la à un livreur pour qu\'il la voie dans son espace.'
+              : 'Le livreur la voit dans son espace et scanne le QR code.',
+        ),
+        trailing: FilledButton.tonal(
+          onPressed: () => _choisir(context),
+          child: Text(nom == null ? 'Confier' : 'Changer'),
+        ),
+      ),
+    );
   }
 }
 

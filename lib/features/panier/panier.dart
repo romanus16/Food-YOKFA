@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../data/models/code_promo.dart';
 import '../../data/models/commande.dart';
 import '../../data/models/produit.dart';
 
@@ -11,9 +12,34 @@ class Panier extends ChangeNotifier {
 
   bool get estVide => _lignes.isEmpty;
 
+  /// Produits choisis avec leur quantité, dans l'ordre d'ajout.
+  List<(Produit, int)> get contenu => _lignes.values.toList();
+
   int get nombreArticles => _lignes.values.fold(0, (s, l) => s + l.$2);
 
-  int get total => _lignes.values.fold(0, (s, l) => s + l.$1.prix * l.$2);
+  /// Total des produits, avant le code promo.
+  int get sousTotal => _lignes.values.fold(0, (s, l) => s + l.$1.prix * l.$2);
+
+  CodePromo? _promo;
+
+  /// Code promo appliqué au panier, s'il y en a un.
+  CodePromo? get promo => _promo;
+
+  /// Réduction du code promo (0 si le panier est sous le minimum du code).
+  int get remise => _promo?.remisePour(sousTotal) ?? 0;
+
+  /// Montant à payer, code promo déduit.
+  int get total => sousTotal - remise;
+
+  void appliquerPromo(CodePromo promo) {
+    _promo = promo;
+    notifyListeners();
+  }
+
+  void retirerPromo() {
+    _promo = null;
+    notifyListeners();
+  }
 
   /// Lignes prêtes à enregistrer dans une commande (nom et prix figés).
   List<LigneCommande> get lignes => [
@@ -47,6 +73,7 @@ class Panier extends ChangeNotifier {
 
   void vider() {
     _lignes.clear();
+    _promo = null;
     notifyListeners();
   }
 }

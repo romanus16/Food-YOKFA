@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/demo.dart';
 import '../../core/format.dart';
 import '../../data/models/commande.dart';
 import '../../data/repositories/commande_repository.dart';
@@ -177,6 +178,15 @@ class _ScanLivraisonScreenState extends State<ScanLivraisonScreen> {
                 'Visez le QR code affiché sur le téléphone du client.',
                 textAlign: TextAlign.center,
               ),
+              if (ModeDemo.actif)
+                const Padding(
+                  padding: EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Démo : saisissez ${ModeDemo.codePayee} ou '
+                    '${ModeDemo.codeEspeces} à la main.',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 onPressed: _occupe ? null : _saisieManuelle,
