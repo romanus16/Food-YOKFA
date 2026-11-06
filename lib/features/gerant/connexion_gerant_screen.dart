@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/auth_gerant.dart';
+import '../../core/demo.dart';
 
 class ConnexionGerantScreen extends StatefulWidget {
   const ConnexionGerantScreen({super.key});
@@ -48,6 +49,18 @@ class _ConnexionGerantScreenState extends State<ConnexionGerantScreen> {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
+          if (ModeDemo.actif) ...[
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Text(
+                  'Mode démo : saisissez n\'importe quel e-mail et '
+                  'mot de passe pour entrer dans l\'espace gérant.',
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           TextField(
             controller: _email,
             keyboardType: TextInputType.emailAddress,

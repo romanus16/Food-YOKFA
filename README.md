@@ -34,8 +34,27 @@ flutter pub get
 flutter run
 ```
 
-Sans configuration Firebase, l'application démarre quand même et affiche
-« Firebase non configuré » sur l'écran d'accueil.
+Sans configuration Firebase, l'application démarre en **mode démo** : un
+bandeau l'indique en haut de l'écran, le menu, les numéros marchands et trois
+commandes d'exemple sont déjà chargés, et tout se passe en mémoire (rien n'est
+enregistré, tout repart à zéro au redémarrage). Dans l'espace gérant,
+n'importe quel e-mail et mot de passe permet d'entrer ; au scan, les codes
+`DEMO-PAYEE` et `DEMO-ESPECES` peuvent être saisis à la main.
+
+Le mode démo ne fonctionne que dans une version de développement
+(`flutter run`, bouton Run d'Android Studio). Pour le forcer alors que Firebase
+est configuré :
+
+```bash
+flutter run --dart-define=DEMO=true
+```
+
+## Aperçu en ligne (GitHub Pages)
+
+Le workflow `.github/workflows/apercu-web.yml` publie la version web, en mode
+démo, à chaque mise à jour de `main`. À activer une seule fois : dans le dépôt
+GitHub, **Settings → Pages → Source : GitHub Actions**. L'aperçu est ensuite à
+l'adresse `https://romanus16.github.io/food-yokfa/`.
 
 ## Configurer Firebase (une seule fois)
 
@@ -130,6 +149,7 @@ lib/
   firebase_options.dart     généré par `flutterfire configure`
   core/
     firebase_bootstrap.dart initialisation Firebase sans planter l'appli
+    demo.dart               mode démo (base en mémoire, comptes factices)
     format.dart             formatage des montants en FCFA (1 000 F)
     theme.dart              couleurs
   data/

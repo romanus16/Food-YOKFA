@@ -48,6 +48,8 @@ dependencies:
   latlong2: ^0.10.1
   geolocator: ^14.1.2
   url_launcher: ^6.3.3
+  # Base locale du mode démo (et des tests).
+  fake_cloud_firestore: ^4.5.0
 
 dev_dependencies:
   flutter_test:
@@ -59,7 +61,6 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
-  fake_cloud_firestore: ^4.5.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

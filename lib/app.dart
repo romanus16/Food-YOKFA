@@ -59,6 +59,9 @@ class FoodYokfaApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      builder: firebase.isDemo
+          ? (context, child) => _BandeauDemo(child: child!)
+          : null,
       home: firebase.isReady
           ? const HomeScreen()
           : FirebaseAbsentScreen(erreur: firebase.error),
@@ -82,6 +85,46 @@ class FoodYokfaApp extends StatelessWidget {
         ),
       ],
       child: _OuvertureNotifications(navigatorKey: navigatorKey, child: app),
+    );
+  }
+}
+
+/// Bandeau en haut de l'écran : on est en mode démo.
+class _BandeauDemo extends StatelessWidget {
+  const _BandeauDemo({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final couleurs = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        Material(
+          color: couleurs.tertiary,
+          child: SafeArea(
+            bottom: false,
+            child: SizedBox(
+              width: double.infinity,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Text(
+                  'Mode démo : données d\'exemple, rien n\'est enregistré',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: couleurs.onTertiary, fontSize: 12),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: child,
+          ),
+        ),
+      ],
     );
   }
 }
