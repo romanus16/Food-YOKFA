@@ -54,7 +54,7 @@ flutter run --dart-define=DEMO=true
 Le workflow `.github/workflows/apercu-web.yml` publie la version web, en mode
 démo, à chaque mise à jour de `main`. À activer une seule fois : dans le dépôt
 GitHub, **Settings → Pages → Source : GitHub Actions**. L'aperçu est ensuite à
-l'adresse `https://romanus16.github.io/food-yokfa/`.
+l'adresse `https://romanus16.github.io/Food-YOKFA/`.
 
 ## Configurer Firebase (une seule fois)
 
