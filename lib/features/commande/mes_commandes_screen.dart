@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/format.dart';
+import '../../core/theme.dart';
+import '../../core/widgets.dart';
 import '../../core/identite.dart';
 import '../../data/models/commande.dart';
 import '../../data/repositories/commande_repository.dart';
@@ -34,32 +36,51 @@ class MesCommandesScreen extends StatelessWidget {
               }
               final liste = snap.data!;
               if (liste.isEmpty) {
-                return const Center(
-                  child: Text('Aucune commande pour le moment.'),
+                return const EtatVide(
+                  icone: Icons.receipt_long_rounded,
+                  texte: 'Aucune commande pour le moment.',
                 );
               }
               final f = DateFormat('d MMM à HH:mm', 'fr');
               return ListView.separated(
+                padding: const EdgeInsets.all(16),
                 itemCount: liste.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, i) {
                   final c = liste[i];
-                  return ListTile(
-                    leading: Icon(_icone(c.statut)),
-                    title: Text(
-                      c.lignes
-                          .map((l) => '${l.quantite} × ${l.nom}')
-                          .join(', '),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      '${c.statut.libelle} · pour le ${f.format(c.heureSouhaitee)}',
-                    ),
-                    trailing: Text(formatFcfa(c.total)),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => PaiementScreen(commandeId: c.id),
+                  return Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 6,
+                      ),
+                      leading: PastilleIcone(
+                        icone: _icone(c.statut),
+                        couleur: _couleur(c.statut),
+                      ),
+                      title: Text(
+                        c.lignes
+                            .map((l) => '${l.quantite} × ${l.nom}')
+                            .join(', '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        '${c.statut.libelle} · pour le ${f.format(c.heureSouhaitee)}',
+                      ),
+                      trailing: Text(
+                        formatFcfa(c.total),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: YokfaCouleurs.orange,
+                        ),
+                      ),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => PaiementScreen(commandeId: c.id),
+                        ),
                       ),
                     ),
                   );
@@ -71,6 +92,13 @@ class MesCommandesScreen extends StatelessWidget {
       ),
     );
   }
+
+  static Color _couleur(StatutCommande s) => switch (s) {
+    StatutCommande.enAttentePaiement => YokfaCouleurs.orange,
+    StatutCommande.payee => const Color(0xFF1971C2),
+    StatutCommande.livree => YokfaCouleurs.vert,
+    StatutCommande.annulee => const Color(0xFFC92A2A),
+  };
 
   static IconData _icone(StatutCommande s) => switch (s) {
     StatutCommande.enAttentePaiement => Icons.hourglass_top,

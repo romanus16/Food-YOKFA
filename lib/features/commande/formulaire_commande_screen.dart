@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/format.dart';
 import '../../core/identite.dart';
+import '../../core/widgets.dart';
 import '../../data/models/commande.dart';
 import '../../data/repositories/commande_repository.dart';
 import '../lieu/carte.dart';
@@ -213,7 +214,6 @@ class _FormulaireCommandeScreenState extends State<FormulaireCommandeScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Filière',
                   hintText: 'Ex. Informatique L2',
-                  border: OutlineInputBorder(),
                 ),
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'Indiquez votre filière.'
@@ -221,19 +221,21 @@ class _FormulaireCommandeScreenState extends State<FormulaireCommandeScreen> {
               ),
               const SizedBox(height: 24),
               Text('Bâtiment', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
               RadioGroup<Batiment>(
                 key: const ValueKey('batiment'),
                 groupValue: _batiment,
                 onChanged: (v) => setState(() => _batiment = v),
-                child: Column(
-                  children: [
-                    for (final b in Batiment.values)
-                      RadioListTile<Batiment>(
-                        value: b,
-                        title: Text(b.libelle),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                  ],
+                child: CarteOptions(
+                  child: Column(
+                    children: [
+                      for (final b in Batiment.values)
+                        RadioListTile<Batiment>(
+                          value: b,
+                          title: Text(b.libelle),
+                        ),
+                    ],
+                  ),
                 ),
               ),
               if (_tente && _batiment == null)
@@ -286,30 +288,31 @@ class _FormulaireCommandeScreenState extends State<FormulaireCommandeScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Point de repère',
                   hintText: 'Ex. devant l\'amphi B, sous le manguier',
-                  border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
               Text('Régler la facture par', style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
               RadioGroup<MoyenPaiement>(
                 key: const ValueKey('paiement'),
                 groupValue: _paiement,
                 onChanged: (v) => setState(() => _paiement = v),
-                child: Column(
-                  children: [
-                    for (final m in MoyenPaiement.values)
-                      RadioListTile<MoyenPaiement>(
-                        value: m,
-                        title: Text(m.libelle),
-                        subtitle: Text(m.operateur),
-                        secondary: Icon(
-                          m.estMobileMoney
-                              ? Icons.phone_android
-                              : Icons.payments_outlined,
+                child: CarteOptions(
+                  child: Column(
+                    children: [
+                      for (final m in MoyenPaiement.values)
+                        RadioListTile<MoyenPaiement>(
+                          value: m,
+                          title: Text(m.libelle),
+                          subtitle: Text(m.operateur),
+                          secondary: Icon(
+                            m.estMobileMoney
+                                ? Icons.phone_android_rounded
+                                : Icons.payments_rounded,
+                          ),
                         ),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               if (_tente && _paiement == null)

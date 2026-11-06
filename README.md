@@ -118,6 +118,18 @@ volume ; si l'appli grandit beaucoup, passer à un fournisseur de tuiles
 (MapTiler, Stadia…) en changeant `urlTemplate` dans
 `lib/features/lieu/carte.dart`.
 
+## Photos et apparence
+
+Le menu d'exemple utilise de vraies photos de plats livrées avec l'appli
+(`assets/photos/`, photos Unsplash libres de droits, crédits dans
+`assets/photos/CREDITS.md`). Le gérant peut mettre sa propre photo sur un
+produit ou une catégorie en collant l'adresse web d'une image dans le champ
+« Photo ». Sans photo, l'appli affiche l'emoji de la catégorie sur un fond
+dégradé.
+
+Couleurs, police (Poppins, dans `assets/fonts/`) et arrondis sont réglés à un
+seul endroit : `lib/core/theme.dart`.
+
 ## Données (Firestore)
 
 | Collection | Contenu |
