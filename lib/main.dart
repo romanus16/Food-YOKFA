@@ -16,7 +16,7 @@ Future<void> main() async {
       ? const FirebaseStatus.demo()
       : await initFirebase();
   if (!firebase.isDemo) {
-    runApp(FoodYokfaApp(firebase: firebase));
+    runApp(FoodYokfaApp(firebase: firebase, intro: true));
     return;
   }
   final FirebaseFirestore base;
@@ -36,6 +36,7 @@ Future<void> main() async {
       identite: IdentiteDemo(),
       authGerant: AuthGerantDemo(),
       notifications: NotificationsDemo(),
+      intro: true,
     ),
   );
 }

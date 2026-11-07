@@ -18,6 +18,7 @@ import 'data/repositories/promo_repository.dart';
 import 'features/home/firebase_absent_screen.dart';
 import 'features/gerant/detail_commande_screen.dart';
 import 'features/home/accueil_shell.dart';
+import 'features/home/intro_animee.dart';
 import 'features/panier/panier.dart';
 
 class FoodYokfaApp extends StatelessWidget {
@@ -28,6 +29,7 @@ class FoodYokfaApp extends StatelessWidget {
     this.identite,
     this.authGerant,
     this.notifications,
+    this.intro = false,
   });
 
   final FirebaseStatus firebase;
@@ -44,6 +46,9 @@ class FoodYokfaApp extends StatelessWidget {
 
   /// Notifications push du gérant. Par défaut Firebase Cloud Messaging.
   final NotificationsGerant? notifications;
+
+  /// Joue l'intro animée du logo à l'ouverture.
+  final bool intro;
 
   static final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -65,7 +70,9 @@ class FoodYokfaApp extends StatelessWidget {
           ? (context, child) => _BandeauDemo(child: child!)
           : null,
       home: firebase.isReady
-          ? const AccueilShell()
+          ? (intro
+                ? const IntroAnimee(child: AccueilShell())
+                : const AccueilShell())
           : FirebaseAbsentScreen(erreur: firebase.error),
     );
     if (!firebase.isReady) return app;

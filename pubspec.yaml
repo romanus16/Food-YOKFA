@@ -79,6 +79,7 @@ flutter:
   assets:
     - assets/photos/
     - assets/logo/
+    - assets/logo/morceaux/
 
   fonts:
     - family: Poppins

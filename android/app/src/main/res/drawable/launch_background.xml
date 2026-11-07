@@ -3,10 +3,5 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/fond_lancement" />
 
-    <!-- You can insert your own image assets here -->
-    <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@mipmap/ic_launcher" />
-    </item>
+    <!-- Fond noir : l'intro animée de l'appli forme ensuite le logo. -->
 </layer-list>
