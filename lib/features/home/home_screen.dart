@@ -65,7 +65,7 @@ class _Entete extends StatelessWidget {
     final theme = Theme.of(context);
     final haut = MediaQuery.paddingOf(context).top;
     return SizedBox(
-      height: 250 + haut,
+      height: 290 + haut,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -83,9 +83,9 @@ class _Entete extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Color(0x99000000),
-                        Color(0x22000000),
-                        Color(0xCC1A0F0A),
+                        Color(0xB30B0B0B),
+                        Color(0x330B0B0B),
+                        Color(0xF20B0B0B),
                       ],
                       stops: [0, 0.4, 1],
                     ),
@@ -104,7 +104,7 @@ class _Entete extends StatelessWidget {
                 Text(
                   'Bon appétit',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: YokfaCouleurs.dore,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -142,21 +142,42 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: YokfaCouleurs.orange,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Text(
-        'Food YOKFA',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
-          fontSize: 16,
-          letterSpacing: 0.3,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: YokfaCouleurs.dore.withValues(alpha: 0.6),
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(13),
+            child: Image.asset(yokfaLogo, width: 46, height: 46),
+          ),
         ),
-      ),
+        const SizedBox(width: 10),
+        const Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: 'Food ',
+                style: TextStyle(color: Colors.white),
+              ),
+              TextSpan(
+                text: 'YOKFA',
+                style: TextStyle(color: YokfaCouleurs.dore),
+              ),
+            ],
+          ),
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            letterSpacing: 0.3,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -172,14 +193,14 @@ class _Pastille extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
+        color: YokfaCouleurs.noir.withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+        border: Border.all(color: YokfaCouleurs.dore.withValues(alpha: 0.45)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icone, size: 14, color: Colors.white),
+          Icon(icone, size: 14, color: YokfaCouleurs.dore),
           const SizedBox(width: 5),
           Text(
             texte,
@@ -306,14 +327,15 @@ class _CategorieTuile extends StatelessWidget {
                           Text(
                             'Voir les plats',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.85),
+                              color: YokfaCouleurs.dore,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(width: 4),
-                          Icon(
+                          const Icon(
                             Icons.arrow_forward_rounded,
                             size: 14,
-                            color: Colors.white.withValues(alpha: 0.85),
+                            color: YokfaCouleurs.dore,
                           ),
                         ],
                       ),

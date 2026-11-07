@@ -70,7 +70,7 @@ class PhotoPlat extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFFFFE3CC), Color(0xFFFFC9A3)],
+          colors: [Color(0xFFFFF0DB), Color(0xFFFFD49A)],
         ),
       ),
       child: Center(

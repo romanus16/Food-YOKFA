@@ -1,18 +1,33 @@
 import 'package:flutter/material.dart';
 
-/// Couleur principale : orange piment.
-const Color yokfaSeed = Color(0xFFE8590C);
+/// Couleur principale : l'orange du logo YF.
+const Color yokfaSeed = Color(0xFFEE6A06);
 
-/// Palette de l'appli.
+/// Palette de l'appli, tirée du logo YF : noir profond, orange, jaune doré
+/// et blanc.
 abstract final class YokfaCouleurs {
-  static const orange = Color(0xFFE8590C);
-  static const orangeFonce = Color(0xFFC2410C);
-  static const creme = Color(0xFFFFF8F2);
-  static const sable = Color(0xFFFCEBDC);
-  static const encre = Color(0xFF2B1D16);
-  static const gris = Color(0xFF7C6A60);
+  static const orange = Color(0xFFEE6A06);
+  static const orangeFonce = Color(0xFFC2510A);
+  static const dore = Color(0xFFFFB21A);
+  static const noir = Color(0xFF0B0B0B);
+  static const charbon = Color(0xFF1C1C1E);
+  static const creme = Color(0xFFFAF8F5);
+  static const sable = Color(0xFFFFF0DB);
+  static const encre = Color(0xFF141414);
+  static const gris = Color(0xFF6E6A66);
   static const vert = Color(0xFF2F9E44);
 }
+
+/// Dégradé orange du « F » du logo.
+const LinearGradient yokfaDegrade = LinearGradient(
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+  colors: [Color(0xFFFF9500), YokfaCouleurs.orange, Color(0xFFE2480A)],
+  stops: [0, 0.5, 1],
+);
+
+/// Logo de l'appli (carré noir).
+const String yokfaLogo = 'assets/logo/logo.png';
 
 /// Rayon des cartes et des boutons.
 const double yokfaRayon = 20;
@@ -145,14 +160,17 @@ ThemeData buildTheme() {
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: Colors.white,
+      backgroundColor: YokfaCouleurs.noir,
       surfaceTintColor: Colors.transparent,
-      indicatorColor: YokfaCouleurs.sable,
-      elevation: 3,
+      indicatorColor: YokfaCouleurs.orange,
+      elevation: 0,
       labelTextStyle: WidgetStateProperty.resolveWith(
         (s) => TextStyle(
           fontFamily: 'Poppins',
           fontSize: 12,
+          color: s.contains(WidgetState.selected)
+              ? YokfaCouleurs.dore
+              : Colors.white.withValues(alpha: 0.7),
           fontWeight: s.contains(WidgetState.selected)
               ? FontWeight.w600
               : FontWeight.w500,
@@ -161,8 +179,8 @@ ThemeData buildTheme() {
       iconTheme: WidgetStateProperty.resolveWith(
         (s) => IconThemeData(
           color: s.contains(WidgetState.selected)
-              ? YokfaCouleurs.orangeFonce
-              : YokfaCouleurs.gris,
+              ? Colors.white
+              : Colors.white.withValues(alpha: 0.7),
         ),
       ),
     ),
@@ -191,9 +209,14 @@ ThemeData buildTheme() {
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
     ),
+    badgeTheme: const BadgeThemeData(
+      backgroundColor: YokfaCouleurs.dore,
+      textColor: YokfaCouleurs.noir,
+    ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
-      backgroundColor: YokfaCouleurs.encre,
+      backgroundColor: YokfaCouleurs.noir,
+      actionTextColor: YokfaCouleurs.dore,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     ),
     dividerTheme: const DividerThemeData(color: Color(0x14000000)),

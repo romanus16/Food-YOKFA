@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/format.dart';
+import '../../core/theme.dart';
 import 'panier.dart';
 import 'panier_screen.dart';
 
@@ -23,10 +24,11 @@ class BarreCommander extends StatelessWidget {
       minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: DecoratedBox(
         decoration: BoxDecoration(
+          gradient: yokfaDegrade,
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: theme.colorScheme.primary.withValues(alpha: 0.35),
+              color: YokfaCouleurs.orange.withValues(alpha: 0.4),
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),
@@ -34,6 +36,8 @@ class BarreCommander extends StatelessWidget {
         ),
         child: FilledButton(
           style: FilledButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
             minimumSize: const Size.fromHeight(60),
             padding: const EdgeInsets.symmetric(horizontal: 10),
             shape: RoundedRectangleBorder(
@@ -52,13 +56,13 @@ class BarreCommander extends StatelessWidget {
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: YokfaCouleurs.noir.withValues(alpha: 0.85),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '$n',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: YokfaCouleurs.dore,
                     fontWeight: FontWeight.w700,
                     fontSize: 16,
                   ),

@@ -78,6 +78,7 @@ flutter:
   # Photos des plats (voir assets/photos/CREDITS.md).
   assets:
     - assets/photos/
+    - assets/logo/
 
   fonts:
     - family: Poppins
